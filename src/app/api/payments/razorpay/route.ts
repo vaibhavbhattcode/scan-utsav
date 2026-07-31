@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import mongoose from "mongoose";
 import { connectDB } from "@/lib/db";
 import User from "@/models/User";
 import Subscription from "@/models/Subscription";
@@ -72,21 +73,26 @@ export async function POST(req: Request) {
       };
       const newPlan = planMap[planName] || "royal";
 
-      // Update user plan in DB
-      await User.findByIdAndUpdate(user.userId, { subscriptionPlan: newPlan });
+      // Update user plan in DB safely if userId is a valid Mongo ObjectId
+      if (mongoose.Types.ObjectId.isValid(user.userId)) {
+        try {
+          await User.findByIdAndUpdate(user.userId, { subscriptionPlan: newPlan });
 
-      // Create subscription log record
-      const oneYearFromNow = new Date();
-      oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);
+          const oneYearFromNow = new Date();
+          oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);
 
-      await Subscription.create({
-        userId: user.userId,
-        planId: newPlan,
-        status: "active",
-        amountPaidINR: finalAmount,
-        startDate: new Date(),
-        endDate: oneYearFromNow,
-      });
+          await Subscription.create({
+            userId: user.userId,
+            planId: newPlan,
+            status: "active",
+            amountPaidINR: finalAmount,
+            startDate: new Date(),
+            endDate: oneYearFromNow,
+          });
+        } catch (dbErr: any) {
+          console.warn("Mongoose DB update warning:", dbErr.message);
+        }
+      }
 
       const invoiceReceipt = {
         invoiceNumber: `INV-2026-${Math.floor(100000 + Math.random() * 900000)}`,

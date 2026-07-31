@@ -49,7 +49,7 @@ export async function authenticateGoogleUser(token: string) {
       }
     } catch (dbErr) {
       user = {
-        _id: "google_dev_user_id",
+        _id: "60c72b2f9b1d8c0015f8a001",
         email: email || "google.host@scanutsav.com",
         name: name || "Google User",
         role: "host",
