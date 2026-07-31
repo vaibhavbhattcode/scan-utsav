@@ -1,0 +1,240 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,700&family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ═══════════════════════════════════════════
+   SCANUTSAV DESIGN SYSTEM — LUXURY LIGHT THEME
+   Ivory White · Royal Gold · Marigold · Slate
+   ═══════════════════════════════════════════ */
+
+@layer base {
+  :root {
+    /* Core Light Theme Palette */
+    --body-bg: #FAF9F6;
+    --card-bg: #FFFFFF;
+    --text-primary: #0F172A;
+    --text-secondary: #475569;
+    --marigold: #F2810C;
+    --maroon: #7A1E2B;
+    --gold: #D97706;
+    --emerald: #059669;
+
+    /* Spacing Scale (4px base) */
+    --space-1: 0.25rem;
+    --space-2: 0.5rem;
+    --space-3: 0.75rem;
+    --space-4: 1rem;
+    --space-6: 1.5rem;
+    --space-8: 2rem;
+    --space-12: 3rem;
+    --space-16: 4rem;
+    --space-20: 5rem;
+    --space-24: 6rem;
+    --space-32: 8rem;
+
+    /* Elevation */
+    --radius-sm: 0.5rem;
+    --radius-md: 0.75rem;
+    --radius-lg: 1rem;
+    --radius-xl: 1.5rem;
+    --radius-2xl: 2rem;
+    --radius-3xl: 2.5rem;
+    --radius-full: 9999px;
+  }
+}
+
+/* ═══════════════════════════════
+   GLOBAL BODY & TYPOGRAPHY
+   ═══════════════════════════════ */
+
+body {
+  color: var(--text-primary);
+  background: var(--body-bg);
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  overflow-x: hidden;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Premium Display Font */
+.font-display {
+  font-family: 'Playfair Display', Georgia, 'Times New Roman', serif;
+}
+
+/* ═══════════════════════════════
+   CUSTOM SCROLLBAR
+   ═══════════════════════════════ */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #F1F5F9;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(242, 129, 12, 0.4);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--marigold);
+}
+
+/* Smooth scroll behavior */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Selection colors */
+::selection {
+  background: rgba(242, 129, 12, 0.2);
+  color: #0F172A;
+}
+
+/* ═══════════════════════════════
+   PURE LIGHT GLASSMORPHISM SYSTEM
+   ═══════════════════════════════ */
+
+/* Level 1: Subtle panels */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(24px) saturate(1.2);
+  -webkit-backdrop-filter: blur(24px) saturate(1.2);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  box-shadow:
+    0 15px 40px -10px rgba(15, 23, 42, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+/* Level 2: Interactive cards */
+.glass-card {
+  background: #FFFFFF;
+  backdrop-filter: blur(16px) saturate(1.1);
+  -webkit-backdrop-filter: blur(16px) saturate(1.1);
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  box-shadow: 0 4px 20px -4px rgba(15, 23, 42, 0.04);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glass-card:hover {
+  border-color: rgba(242, 129, 12, 0.4);
+  box-shadow:
+    0 16px 40px -10px rgba(242, 129, 12, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  transform: translateY(-4px);
+}
+
+/* Level 3: Elevated surfaces */
+.glass-elevated {
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(40px) saturate(1.3);
+  -webkit-backdrop-filter: blur(40px) saturate(1.3);
+  border: 1px solid rgba(226, 232, 240, 1);
+  box-shadow:
+    0 25px 60px -15px rgba(15, 23, 42, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 1);
+}
+
+/* ═══════════════════════════════
+   TEXT GRADIENT UTILITIES
+   ═══════════════════════════════ */
+
+.text-gradient {
+  background: linear-gradient(135deg, #0F172A 0%, #1E293B 60%, #F2810C 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-gradient-gold {
+  background: linear-gradient(135deg, #B45309 0%, #D97706 50%, #F2810C 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-gradient-marigold {
+  background: linear-gradient(135deg, #F2810C 0%, #D97706 60%, #92400E 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-gradient-maroon {
+  background: linear-gradient(135deg, #7A1E2B 0%, #991B1B 50%, #450A0A 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ═══════════════════════════════
+   GLOW SHADOWS
+   ═══════════════════════════════ */
+
+.shadow-glow-marigold {
+  box-shadow: 0 10px 30px -5px rgba(242, 129, 12, 0.3);
+}
+.shadow-glow-maroon {
+  box-shadow: 0 10px 30px -5px rgba(122, 30, 43, 0.25);
+}
+.shadow-glow-gold {
+  box-shadow: 0 10px 30px -5px rgba(217, 119, 6, 0.3);
+}
+.shadow-glow-emerald {
+  box-shadow: 0 10px 30px -5px rgba(5, 150, 105, 0.25);
+}
+
+/* ═══════════════════════════════
+   ANIMATION KEYFRAMES
+   ═══════════════════════════════ */
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  25% { transform: translateY(-8px) rotate(0.5deg); }
+  75% { transform: translateY(4px) rotate(-0.5deg); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-float { animation: float 6s ease-in-out infinite; }
+.animate-fade-up { animation: fade-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+/* ═══════════════════════════════
+   PRINT STYLES
+   ═══════════════════════════════ */
+
+@media print {
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+  nav, footer, .print-hide, main > *:not(#printable-poster-area) {
+    display: none !important;
+  }
+  #printable-poster-area {
+    display: block !important;
+    width: 100% !important;
+    max-width: 650px !important;
+    margin: 0 auto !important;
+    padding: 20px !important;
+    box-shadow: none !important;
+    border: 2px solid var(--marigold) !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+}
