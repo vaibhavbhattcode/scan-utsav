@@ -36,22 +36,22 @@ export const StorageQuotaMeter: React.FC<StorageQuotaMeterProps> = ({
     : "bg-emeraldWarm";
 
   return (
-    <div className="glass-panel p-6 rounded-3xl space-y-4 border border-white/10 shadow-2xl">
+    <div className="glass-panel p-6 rounded-3xl space-y-4 border border-slate-200 shadow-sm bg-white">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div className="flex items-center gap-2.5">
-          <div className="p-2 rounded-xl bg-purple-500/10 text-purple-400 border border-purple-500/20">
+          <div className="p-2 rounded-xl bg-purple-100 text-purple-700 border border-purple-200">
             <HardDrive className="w-5 h-5" />
           </div>
           <div>
-            <h4 className="font-bold text-white text-sm">Event Memory Storage Quota</h4>
-            <p className="text-[11px] text-slate-400 font-sans">
-              Current Plan: <span className="text-gold-400 font-bold uppercase">{plan}</span> ({capacityGB} GB Included)
+            <h4 className="font-bold text-slate-900 text-sm font-sans">Event Memory Storage Quota</h4>
+            <p className="text-[11px] text-slate-600 font-sans">
+              Current Plan: <span className="text-[#F2810C] font-bold uppercase">{plan}</span> ({capacityGB} GB Included)
             </p>
           </div>
         </div>
 
         <Link href="/dashboard/billing">
-          <Button variant="glass" size="sm" className="text-xs">
+          <Button variant="glass" size="sm" className="text-xs text-slate-800 bg-slate-100 hover:bg-slate-200 border border-slate-300">
             <span>Manage Storage</span>
             <ArrowUpRight className="w-3.5 h-3.5" />
           </Button>
@@ -60,12 +60,12 @@ export const StorageQuotaMeter: React.FC<StorageQuotaMeterProps> = ({
 
       {/* Progress Bar */}
       <div className="space-y-1.5">
-        <div className="flex items-center justify-between text-xs font-mono">
-          <span className="text-white font-bold">{usedGB} GB Used</span>
-          <span className="text-slate-400">{remainingGB} GB Remaining ({percentUsed}%)</span>
+        <div className="flex items-center justify-between text-xs font-sans">
+          <span className="text-slate-900 font-bold">{usedGB} GB Used</span>
+          <span className="text-slate-600 font-medium">{remainingGB} GB Remaining ({percentUsed}%)</span>
         </div>
 
-        <div className="w-full bg-slate-900 h-3 rounded-full overflow-hidden border border-white/10">
+        <div className="w-full bg-slate-200 h-3 rounded-full overflow-hidden border border-slate-300">
           <div
             className={`h-full transition-all duration-500 ${barColor}`}
             style={{ width: `${percentUsed}%` }}
@@ -75,13 +75,13 @@ export const StorageQuotaMeter: React.FC<StorageQuotaMeterProps> = ({
 
       {/* Usage Warning Banner */}
       {isHighUsage && (
-        <div className="flex items-center justify-between p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs">
+        <div className="flex items-center justify-between p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs">
           <div className="flex items-center gap-2">
-            <AlertTriangle className="w-4 h-4 text-rose-400 flex-shrink-0" />
+            <AlertTriangle className="w-4 h-4 text-rose-600 flex-shrink-0" />
             <span>Storage is almost full! Upgrade to prevent upload disruptions.</span>
           </div>
           <Link href="/dashboard/billing">
-            <span className="font-bold underline text-white">Upgrade Now</span>
+            <span className="font-bold underline text-rose-900">Upgrade Now</span>
           </Link>
         </div>
       )}

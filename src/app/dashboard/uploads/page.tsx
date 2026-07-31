@@ -57,21 +57,21 @@ export default function ModerationGridPage() {
   const pendingItems = items.filter(i => i.status === "pending");
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-8 space-y-8">
+    <div className="max-w-6xl mx-auto px-6 py-8 space-y-8 font-sans text-slate-900">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-6">
         <div className="flex items-center gap-3">
-          <Link href="/dashboard" className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300">
+          <Link href="/dashboard" className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300">
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <div>
-            <span className="text-xs uppercase font-extrabold tracking-widest text-brand-400">Moderation Desk</span>
-            <h1 className="text-3xl font-black text-white">Live Guest Upload Queue</h1>
+            <span className="text-xs uppercase font-extrabold tracking-widest text-[#F2810C]">Moderation Desk</span>
+            <h1 className="text-3xl font-black text-slate-900 font-display">Live Guest Upload Queue</h1>
           </div>
         </div>
 
         {pendingItems.length > 0 && (
-          <Button variant="primary" size="sm" onClick={handleApproveAll} className="shadow-glow-brand">
+          <Button variant="primary" size="sm" onClick={handleApproveAll} className="bg-[#F2810C] hover:bg-[#D97706] text-white">
             <CheckCircle2 className="w-4 h-4" />
             <span>Approve All Pending ({pendingItems.length})</span>
           </Button>
@@ -79,40 +79,40 @@ export default function ModerationGridPage() {
       </div>
 
       {pendingItems.length === 0 ? (
-        <div className="glass-panel p-12 rounded-3xl text-center space-y-3 border border-white/10">
-          <CheckCircle2 className="w-10 h-10 text-emerald-400 mx-auto" />
-          <h3 className="text-xl font-bold text-white">All Pending Uploads Reviewed!</h3>
-          <p className="text-xs text-slate-400">New guest uploads will appear here in real-time.</p>
+        <div className="glass-panel p-12 rounded-3xl text-center space-y-3 border border-slate-200 bg-white shadow-sm">
+          <CheckCircle2 className="w-10 h-10 text-emerald-600 mx-auto" />
+          <h3 className="text-xl font-bold text-slate-900 font-display">All Pending Uploads Reviewed!</h3>
+          <p className="text-xs text-slate-600 font-medium">New guest uploads will appear here in real-time.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {pendingItems.map((item) => (
-            <div key={item.id} className="glass-card rounded-2xl overflow-hidden border border-white/10 space-y-3 p-4 flex flex-col justify-between">
-              <div className="relative aspect-square rounded-xl overflow-hidden bg-slate-950">
+            <div key={item.id} className="glass-card rounded-2xl overflow-hidden border border-slate-200 space-y-3 p-4 flex flex-col justify-between bg-white shadow-sm">
+              <div className="relative aspect-square rounded-xl overflow-hidden bg-slate-100 border border-slate-200">
                 <img src={item.url} alt="Upload" className="w-full h-full object-cover" />
 
                 {item.aiFlag && (
-                  <span className="absolute top-2 left-2 bg-amber-500/90 text-slate-950 text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full flex items-center gap-1 shadow-md">
+                  <span className="absolute top-2 left-2 bg-amber-500 text-slate-950 text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full flex items-center gap-1 shadow-md">
                     <ShieldAlert className="w-3 h-3" /> AI Duplicate Review
                   </span>
                 )}
               </div>
 
               <div>
-                <span className="text-xs font-bold text-white">{item.uploader}</span>
-                <p className="text-[11px] text-slate-300 italic mt-0.5">"{item.wish}"</p>
+                <span className="text-xs font-bold text-slate-900">{item.uploader}</span>
+                <p className="text-[11px] text-slate-600 italic mt-0.5">"{item.wish}"</p>
               </div>
 
-              <div className="grid grid-cols-2 gap-2 pt-2 border-t border-white/5">
+              <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-200">
                 <button
                   onClick={() => handleReject(item.id)}
-                  className="py-2 px-3 rounded-xl bg-red-600/20 text-red-300 hover:bg-red-600/30 text-xs font-semibold flex items-center justify-center gap-1 border border-red-500/30"
+                  className="py-2 px-3 rounded-xl bg-rose-100 text-rose-800 hover:bg-rose-200 text-xs font-bold flex items-center justify-center gap-1 border border-rose-300"
                 >
                   <X className="w-3.5 h-3.5" /> Reject
                 </button>
                 <button
                   onClick={() => handleApprove(item.id)}
-                  className="py-2 px-3 rounded-xl bg-emerald-600/20 text-emerald-300 hover:bg-emerald-600/30 text-xs font-semibold flex items-center justify-center gap-1 border border-emerald-500/30"
+                  className="py-2 px-3 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 text-xs font-bold flex items-center justify-center gap-1 shadow-sm"
                 >
                   <Check className="w-3.5 h-3.5" /> Approve
                 </button>

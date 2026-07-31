@@ -36,16 +36,16 @@ export default function QRBuilderStudio() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-6 py-8 space-y-8">
+    <div className="max-w-7xl mx-auto px-6 py-8 space-y-8 font-sans text-slate-900">
       {/* Top Header - Hidden when printing */}
-      <div className="flex items-center justify-between border-b border-white/10 pb-6 print-hide">
+      <div className="flex items-center justify-between border-b border-slate-200 pb-6 print-hide">
         <div className="flex items-center gap-3">
-          <Link href="/dashboard" className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300">
+          <Link href="/dashboard" className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300">
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <div>
-            <span className="text-xs uppercase font-extrabold tracking-widest text-brand-400">Design Studio</span>
-            <h1 className="text-3xl font-black text-white">Printable QR Poster & Standee Studio</h1>
+            <span className="text-xs uppercase font-extrabold tracking-widest text-[#F2810C]">Design Studio</span>
+            <h1 className="text-3xl font-black text-slate-900 font-display">Printable QR Poster & Standee Studio</h1>
           </div>
         </div>
 

@@ -55,16 +55,16 @@ export default function HostEventsPage() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-8 font-sans text-slate-900">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-6">
         <div>
-          <span className="text-xs uppercase font-extrabold tracking-widest text-marigold-400">Host Dashboard</span>
-          <h1 className="text-2xl sm:text-4xl font-black text-white font-display">Event Management Desk</h1>
+          <span className="text-xs uppercase font-extrabold tracking-widest text-[#F2810C]">Host Dashboard</span>
+          <h1 className="text-2xl sm:text-4xl font-black text-slate-900 font-display">Event Management Desk</h1>
         </div>
 
         <Link href="/dashboard/events">
-          <Button variant="primary" size="md" className="shadow-glow-marigold">
+          <Button variant="primary" size="md" className="shadow-md bg-[#F2810C] hover:bg-[#D97706] text-white border border-[#F2810C]">
             <Plus className="w-4 h-4" />
             <span>Create Event</span>
           </Button>
@@ -77,40 +77,40 @@ export default function HostEventsPage() {
       {/* Events Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {events.map((evt) => (
-          <div key={evt.id} className="glass-card rounded-3xl p-6 border border-white/10 space-y-4 flex flex-col justify-between">
+          <div key={evt.id} className="glass-card rounded-3xl p-6 border border-slate-200 space-y-4 flex flex-col justify-between bg-white shadow-sm">
             <div className="space-y-3">
-              <div className="relative h-44 rounded-2xl overflow-hidden border border-white/10">
+              <div className="relative h-44 rounded-2xl overflow-hidden border border-slate-200">
                 <img src={evt.coverImage} alt={evt.title} className="w-full h-full object-cover" />
-                <span className="absolute top-3 right-3 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-black/70 backdrop-blur-md text-emeraldWarm border border-emeraldWarm/30">
+                <span className="absolute top-3 right-3 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-900/80 backdrop-blur-md text-emerald-400 border border-emerald-500/30">
                   {evt.status}
                 </span>
               </div>
 
               <div>
-                <h3 className="font-bold text-white text-lg font-display">{evt.title}</h3>
-                <p className="text-xs text-slate-400">Code: <span className="text-marigold-400 font-mono font-bold">{evt.code}</span></p>
+                <h3 className="font-bold text-slate-900 text-lg font-display">{evt.title}</h3>
+                <p className="text-xs text-slate-600 font-medium">Code: <span className="text-[#F2810C] font-mono font-bold">{evt.code}</span></p>
               </div>
 
-              <div className="flex items-center justify-between bg-slate-900/60 p-3 rounded-xl text-xs border border-white/5">
-                <span className="text-slate-400">Memories Captured</span>
-                <span className="font-bold text-gold-400 text-sm">{evt.mediaCount} Photos</span>
+              <div className="flex items-center justify-between bg-slate-50 p-3 rounded-xl text-xs border border-slate-200">
+                <span className="text-slate-600 font-medium">Memories Captured</span>
+                <span className="font-bold text-amber-800 text-sm">{evt.mediaCount} Photos</span>
               </div>
             </div>
 
-            <div className="pt-2 border-t border-white/10 space-y-2">
+            <div className="pt-2 border-t border-slate-200 space-y-2">
               <div className="grid grid-cols-2 gap-2">
-                <Button variant="glass" size="sm" onClick={() => copyGuestLink(evt.code)} className="w-full">
+                <Button variant="glass" size="sm" onClick={() => copyGuestLink(evt.code)} className="w-full bg-slate-100 text-slate-800 border border-slate-300">
                   <Share2 className="w-3.5 h-3.5" /> Link
                 </Button>
                 <Link href={`/e/${evt.code}/slideshow`} target="_blank" className="w-full">
-                  <Button variant="outline" size="sm" className="w-full">
-                    <Tv className="w-3.5 h-3.5 text-marigold-400" /> TV Stream
+                  <Button variant="outline" size="sm" className="w-full text-slate-800 border-slate-300">
+                    <Tv className="w-3.5 h-3.5 text-[#F2810C]" /> TV Stream
                   </Button>
                 </Link>
               </div>
 
               <Link href={`/e/${evt.code}`} target="_blank" className="block w-full">
-                <Button variant="primary" size="sm" className="w-full">
+                <Button variant="primary" size="sm" className="w-full bg-[#F2810C] hover:bg-[#D97706] text-white">
                   <span>View Memory Wall</span>
                   <ArrowUpRight className="w-3.5 h-3.5" />
                 </Button>
