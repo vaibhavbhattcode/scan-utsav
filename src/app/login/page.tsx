@@ -1,13 +1,13 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Lock, Mail, ArrowRight, ShieldCheck, Sparkles, Eye, EyeOff } from "lucide-react";
+import { Lock, Mail, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { useToast } from "@/components/ui/Toast";
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectPath = searchParams.get("redirect") || "/dashboard";
@@ -82,7 +82,7 @@ export default function LoginPage() {
         <div className="text-center space-y-3">
           <Link href="/" className="inline-block group justify-center">
             <span className="text-3xl font-black tracking-tight text-slate-900 font-sans group-hover:scale-105 transition-transform duration-300">
-              Scan<span className="text-marigold-500">Utsav</span>
+              Scan<span className="text-[#F2810C]">Utsav</span>
             </span>
           </Link>
           <h1 className="text-3xl font-black text-slate-900 font-display">Welcome Back</h1>
@@ -123,7 +123,7 @@ export default function LoginPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="host@scanutsav.com"
-                  className="w-full bg-slate-50 border border-slate-300 rounded-xl pl-10 pr-4 py-2.5 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-marigold-500"
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl pl-10 pr-4 py-2.5 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#F2810C]"
                 />
               </div>
             </div>
@@ -138,7 +138,7 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full bg-slate-50 border border-slate-300 rounded-xl pl-10 pr-10 py-2.5 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-marigold-500"
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl pl-10 pr-10 py-2.5 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#F2810C]"
                 />
                 <button
                   type="button"
@@ -150,19 +150,31 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <Button type="submit" variant="primary" size="lg" className="w-full shadow-glow-marigold text-xs font-bold bg-marigold-500 hover:bg-marigold-600 text-white" disabled={loading}>
+            <Button type="submit" variant="primary" size="lg" className="w-full text-xs font-bold bg-[#F2810C] hover:bg-[#D97706] text-white" disabled={loading}>
               {loading ? "Authenticating..." : "Sign In to Account"}
             </Button>
           </form>
 
           <div className="pt-2 text-center text-xs text-slate-600">
             Don't have an account?{" "}
-            <Link href="/register" className="text-marigold-600 hover:text-marigold-700 font-bold underline">
+            <Link href="/register" className="text-[#F2810C] hover:text-[#D97706] font-bold underline">
               Create Free Account
             </Link>
           </div>
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-[85vh] flex items-center justify-center p-6 text-slate-500 font-bold text-xs">
+        Loading ScanUtsav Login...
+      </div>
+    }>
+      <LoginForm />
+    </Suspense>
   );
 }
