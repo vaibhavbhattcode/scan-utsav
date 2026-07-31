@@ -124,7 +124,7 @@ export default function LandingHomePage() {
     const origin = typeof window !== "undefined"
       ? window.location.origin
       : (process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000");
-    const scanDestination = `${origin}/e/demo-event`;
+    const scanDestination = origin;
 
     QRCode.toDataURL(scanDestination, {
       width: 320,
@@ -257,7 +257,7 @@ export default function LandingHomePage() {
               <p className="text-[11px] text-slate-600 font-semibold">Scan to share your blessings & photos!</p>
             </div>
 
-            <Link href="/e/demo-event" className="block relative">
+            <Link href="/" className="block relative">
               <div className="p-3 bg-white rounded-2xl inline-block shadow-lg mx-auto border-4 border-amber-400/60 group-hover:scale-105 transition-transform duration-300 relative overflow-hidden">
                 {heroQrUrl ? (
                   <img
