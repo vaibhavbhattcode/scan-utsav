@@ -37,11 +37,27 @@ export async function middleware(request: NextRequest) {
 
   // CSRF Protection Check for Mutating API requests
   if (["POST", "PUT", "PATCH", "DELETE"].includes(request.method) && path.startsWith("/api/")) {
-    const publicEndpoints = ["/api/auth/login", "/api/auth/register", "/api/media", "/api/contact"];
+    const publicEndpoints = [
+      "/api/auth/login",
+      "/api/auth/register",
+      "/api/auth/google",
+      "/api/media",
+      "/api/contact",
+      "/api/upload/presign",
+      "/api/events/verify-password",
+      "/api/payments/razorpay",
+      "/api/payments/gift",
+      "/api/coupons",
+    ];
     const isPublic = publicEndpoints.some(p => path === p || path.startsWith(p));
 
     if (!isPublic) {
-      const csrfHeader = request.headers.get("x-csrf-token") || request.headers.get("x-scanutsav-request");
+      const csrfHeader =
+        request.headers.get("x-csrf-token") ||
+        request.headers.get("x-scanutsav-request") ||
+        request.headers.get("authorization") ||
+        request.headers.get("content-type")?.includes("application/json");
+
       if (!csrfHeader) {
         return NextResponse.json({ error: "CSRF token missing or invalid" }, { status: 403 });
       }

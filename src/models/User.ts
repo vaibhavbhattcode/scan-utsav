@@ -10,6 +10,8 @@ export interface IUser extends Document {
   storageUsedMB: number;
   isBlocked: boolean;
   blockedIp?: string;
+  authProvider?: string;
+  googleId?: string;
   createdAt: Date;
 }
 
@@ -23,6 +25,8 @@ const UserSchema: Schema = new Schema({
   storageUsedMB: { type: Number, default: 0 },
   isBlocked: { type: Boolean, default: false },
   blockedIp: { type: String, default: "" },
+  authProvider: { type: String, default: "local" },
+  googleId: { type: String },
   createdAt: { type: Date, default: Date.now }
 });
 
