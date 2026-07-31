@@ -292,17 +292,17 @@ export default function BillingWorkspacesPage() {
             </div>
 
             {/* PRINTABLE INVOICE CONTENT AREA */}
-            <div id="printable-invoice-area" className="p-8 sm:p-10 space-y-8 bg-white text-slate-900">
+            <div id="printable-invoice-area" className="p-6 sm:p-8 space-y-5 bg-white text-slate-900 print:p-0 print:space-y-4 print:text-black">
               {/* Invoice Header */}
-              <div className="flex items-start justify-between border-b-2 border-slate-900 pb-6">
+              <div className="flex items-start justify-between border-b-2 border-slate-900 pb-4 print:pb-3">
                 <div>
-                  <span className="text-3xl font-black tracking-tight text-slate-900 font-sans">
+                  <span className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 font-sans">
                     Scan<span className="text-[#F2810C]">Utsav</span>
                   </span>
-                  <p className="text-[10px] text-slate-500 font-extrabold tracking-widest uppercase mt-0.5">
+                  <p className="text-[10px] text-slate-600 font-extrabold tracking-widest uppercase mt-0.5">
                     ScanUtsav EventTech Solutions Private Limited
                   </p>
-                  <p className="text-[11px] text-slate-600 mt-2 max-w-sm leading-relaxed">
+                  <p className="text-[10px] text-slate-700 mt-1 max-w-sm leading-snug">
                     104, Celebration Hub, Lake City, Udaipur, Rajasthan — 313001<br />
                     <strong>GSTIN:</strong> 27AAAAA0000A1Z5 | <strong>CIN:</strong> U72900RJ2026PTC081234<br />
                     <strong>Support:</strong> billing@scanutsav.com | +91 98765 00000
@@ -310,55 +310,55 @@ export default function BillingWorkspacesPage() {
                 </div>
 
                 <div className="text-right space-y-1">
-                  <span className="inline-block px-3 py-1 bg-amber-100 text-[#F2810C] font-black text-xs rounded-full border border-amber-300 tracking-wider">
+                  <span className="inline-block px-3 py-0.5 bg-amber-100 text-[#F2810C] font-black text-[11px] rounded-full border border-amber-300 tracking-wider">
                     TAX INVOICE
                   </span>
-                  <h2 className="text-xl font-black text-slate-900 font-mono pt-1">{selectedInvoice.id}</h2>
-                  <p className="text-xs text-slate-600 font-bold"><strong>Date:</strong> {selectedInvoice.date}</p>
-                  <p className="text-xs text-slate-600"><strong>Place of Supply:</strong> Rajasthan (08)</p>
+                  <h2 className="text-lg font-black text-slate-900 font-mono pt-1">{selectedInvoice.id}</h2>
+                  <p className="text-[11px] text-slate-700 font-bold"><strong>Date:</strong> {selectedInvoice.date}</p>
+                  <p className="text-[11px] text-slate-700"><strong>Place of Supply:</strong> Rajasthan (08)</p>
                 </div>
               </div>
 
               {/* Bill To & Payment Info */}
-              <div className="grid grid-cols-2 gap-6 bg-slate-50 p-5 rounded-2xl border border-slate-200 text-xs">
+              <div className="grid grid-cols-2 gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-200 text-xs print:bg-white print:border-slate-300 print:p-3">
                 <div>
-                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">BILLED TO (CUSTOMER)</span>
-                  <h3 className="text-sm font-black text-slate-900 mt-1">ScanUtsav Host User</h3>
-                  <p className="text-slate-600 mt-0.5">host@scanutsav.com</p>
-                  <p className="text-slate-600 font-medium">Workspace: Royal Planners Udaipur</p>
+                  <span className="text-[9px] font-extrabold uppercase tracking-widest text-slate-600">BILLED TO (CUSTOMER)</span>
+                  <h3 className="text-xs font-black text-slate-900 mt-0.5">ScanUtsav Host User</h3>
+                  <p className="text-slate-700 text-[11px]">host@scanutsav.com</p>
+                  <p className="text-slate-700 text-[11px] font-medium">Workspace: Royal Planners Udaipur</p>
                 </div>
-                <div className="text-right space-y-1">
-                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">PAYMENT DETAILS</span>
-                  <p className="font-bold text-slate-900">Payment Status: <span className="text-emerald-700 font-extrabold">PAID</span></p>
-                  <p className="text-slate-600">Method: Razorpay Online (UPI / Card)</p>
-                  <p className="text-slate-600 font-mono text-[11px]">Txn ID: pay_{selectedInvoice.id.split("-")[2] || "998231"}</p>
+                <div className="text-right space-y-0.5">
+                  <span className="text-[9px] font-extrabold uppercase tracking-widest text-slate-600">PAYMENT DETAILS</span>
+                  <p className="font-bold text-slate-900 text-xs">Payment Status: <span className="text-emerald-700 font-black">PAID</span></p>
+                  <p className="text-slate-700 text-[11px]">Method: Razorpay Online (UPI / Card)</p>
+                  <p className="text-slate-700 font-mono text-[10px]">Txn ID: pay_{selectedInvoice.id.split("-")[2] || "998231"}</p>
                 </div>
               </div>
 
               {/* Itemized Table */}
               <div className="rounded-xl overflow-hidden border border-slate-300">
                 <table className="w-full text-left text-xs">
-                  <thead className="bg-slate-900 text-white font-bold uppercase text-[10px] tracking-wider">
+                  <thead className="bg-slate-900 text-white font-bold uppercase text-[9px] tracking-wider">
                     <tr>
-                      <th className="p-3">Service Description</th>
-                      <th className="p-3 text-center">SAC Code</th>
-                      <th className="p-3 text-right">Base Price</th>
-                      <th className="p-3 text-right">CGST (9%)</th>
-                      <th className="p-3 text-right">SGST (9%)</th>
-                      <th className="p-3 text-right">Total (INR)</th>
+                      <th className="p-2.5">Service Description</th>
+                      <th className="p-2.5 text-center">SAC Code</th>
+                      <th className="p-2.5 text-right">Base Price</th>
+                      <th className="p-2.5 text-right">CGST (9%)</th>
+                      <th className="p-2.5 text-right">SGST (9%)</th>
+                      <th className="p-2.5 text-right">Total (INR)</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-200">
                     <tr>
-                      <td className="p-3">
+                      <td className="p-2.5">
                         <span className="font-bold text-slate-900">{selectedInvoice.plan}</span>
-                        <p className="text-[11px] text-slate-600">Includes AI Face Recognition, Live TV Stream & Cloud Storage Access</p>
+                        <p className="text-[10px] text-slate-600">Includes AI Face Recognition, Live TV Stream & Cloud Storage Access</p>
                       </td>
-                      <td className="p-3 text-center font-mono font-bold text-slate-700">998314</td>
-                      <td className="p-3 text-right font-mono font-bold text-slate-800">{selectedInvoice.baseAmount}</td>
-                      <td className="p-3 text-right font-mono text-slate-700">{selectedInvoice.cgst}</td>
-                      <td className="p-3 text-right font-mono text-slate-700">{selectedInvoice.sgst}</td>
-                      <td className="p-3 text-right font-mono font-black text-slate-900 text-sm">{selectedInvoice.total}</td>
+                      <td className="p-2.5 text-center font-mono font-bold text-slate-700">998314</td>
+                      <td className="p-2.5 text-right font-mono font-bold text-slate-800">{selectedInvoice.baseAmount}</td>
+                      <td className="p-2.5 text-right font-mono text-slate-700">{selectedInvoice.cgst}</td>
+                      <td className="p-2.5 text-right font-mono text-slate-700">{selectedInvoice.sgst}</td>
+                      <td className="p-2.5 text-right font-mono font-black text-slate-900 text-xs">{selectedInvoice.total}</td>
                     </tr>
                   </tbody>
                 </table>
@@ -366,20 +366,20 @@ export default function BillingWorkspacesPage() {
 
               {/* Summary Calculations */}
               <div className="flex justify-end">
-                <div className="w-64 bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2 text-xs font-mono">
-                  <div className="flex justify-between text-slate-600">
+                <div className="w-60 bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-1.5 text-xs font-mono print:bg-white print:border-slate-300 print:p-2.5">
+                  <div className="flex justify-between text-slate-700 text-[11px]">
                     <span>Subtotal:</span>
                     <span className="font-bold">{selectedInvoice.baseAmount}</span>
                   </div>
-                  <div className="flex justify-between text-slate-600">
+                  <div className="flex justify-between text-slate-700 text-[11px]">
                     <span>CGST (9%):</span>
                     <span>{selectedInvoice.cgst}</span>
                   </div>
-                  <div className="flex justify-between text-slate-600">
+                  <div className="flex justify-between text-slate-700 text-[11px]">
                     <span>SGST (9%):</span>
                     <span>{selectedInvoice.sgst}</span>
                   </div>
-                  <div className="flex justify-between text-slate-900 text-sm font-black pt-2 border-t border-slate-300">
+                  <div className="flex justify-between text-slate-900 text-xs font-black pt-1.5 border-t border-slate-300">
                     <span>Total Paid:</span>
                     <span className="text-[#F2810C]">{selectedInvoice.total}</span>
                   </div>
@@ -387,18 +387,18 @@ export default function BillingWorkspacesPage() {
               </div>
 
               {/* Signature & Verification Seal */}
-              <div className="flex items-center justify-between pt-6 border-t border-slate-200">
+              <div className="flex items-center justify-between pt-4 border-t border-slate-200">
                 <div className="space-y-1">
-                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">DIGITAL AUDIT & VERIFICATION</span>
-                  <div className="flex items-center gap-2 text-emerald-800 font-bold text-xs bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-200">
-                    <Check className="w-4 h-4 text-emerald-600" />
+                  <span className="text-[9px] font-extrabold uppercase tracking-widest text-slate-600">DIGITAL AUDIT & VERIFICATION</span>
+                  <div className="flex items-center gap-1.5 text-emerald-800 font-bold text-[11px] bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200">
+                    <Check className="w-3.5 h-3.5 text-emerald-600" />
                     <span>Digitally Verified GST Compliant Invoice</span>
                   </div>
                 </div>
 
-                <div className="text-right space-y-1">
+                <div className="text-right space-y-0.5">
                   <div className="text-xs font-black text-slate-900 font-display">ScanUtsav Technologies Pvt. Ltd.</div>
-                  <p className="text-[10px] text-slate-500 font-mono">Authorized Signatory (System Generated)</p>
+                  <p className="text-[9px] text-slate-600 font-mono">Authorized Signatory (System Generated)</p>
                 </div>
               </div>
             </div>

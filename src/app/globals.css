@@ -219,21 +219,33 @@ html {
    ═══════════════════════════════ */
 
 @media print {
-  body {
+  @page {
+    size: A4 portrait;
+    margin: 10mm 12mm;
+  }
+  html, body {
     background: #ffffff !important;
     color: #000000 !important;
+    height: auto !important;
+    overflow: visible !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
-  nav, footer, .print-hide {
+  nav, footer, header, .print-hide {
     display: none !important;
   }
   #printable-poster-area, #printable-invoice-area {
     display: block !important;
     width: 100% !important;
-    max-width: 750px !important;
+    max-width: 100% !important;
     margin: 0 auto !important;
-    padding: 24px !important;
+    padding: 0 !important;
     box-shadow: none !important;
+    border: none !important;
     background: #ffffff !important;
     color: #000000 !important;
+    page-break-after: avoid !important;
+    page-break-before: avoid !important;
+    page-break-inside: avoid !important;
   }
 }
