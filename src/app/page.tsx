@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import QRCode from "qrcode";
 import { 
   QrCode, Sparkles, Tv, ShieldCheck, ArrowRight, Camera, Printer, 
   Download, Star, CheckCircle2, Heart, HelpCircle, Layers, Users, Zap,
@@ -113,10 +114,30 @@ export default function LandingHomePage() {
   const [cms, setCms] = useState<any>(null);
   const [activeOccasion, setActiveOccasion] = useState("wedding");
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
+  const [heroQrUrl, setHeroQrUrl] = useState<string>("");
 
   // 3D Tilt Card state
   const [rotX, setRotX] = useState(0);
   const [rotY, setRotY] = useState(0);
+
+  useEffect(() => {
+    const origin = typeof window !== "undefined"
+      ? window.location.origin
+      : (process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000");
+    const scanDestination = `${origin}/e/demo-event`;
+
+    QRCode.toDataURL(scanDestination, {
+      width: 320,
+      margin: 1,
+      color: {
+        dark: "#0f172a",
+        light: "#ffffff",
+      },
+      errorCorrectionLevel: "H",
+    })
+      .then((url) => setHeroQrUrl(url))
+      .catch((err) => console.error("Hero QR code generation failed:", err));
+  }, []);
 
   useEffect(() => {
     fetch("/api/admin/cms")
@@ -236,9 +257,26 @@ export default function LandingHomePage() {
               <p className="text-[11px] text-slate-600 font-semibold">Scan to share your blessings & photos!</p>
             </div>
 
-            <div className="p-3 bg-slate-50 rounded-2xl inline-block shadow-lg mx-auto border-4 border-amber-400/50 group-hover:scale-105 transition-transform duration-300">
-              <QrCode className="w-36 h-36 text-[#F2810C]" />
-            </div>
+            <Link href="/e/demo-event" className="block relative">
+              <div className="p-3 bg-white rounded-2xl inline-block shadow-lg mx-auto border-4 border-amber-400/60 group-hover:scale-105 transition-transform duration-300 relative overflow-hidden">
+                {heroQrUrl ? (
+                  <img
+                    src={heroQrUrl}
+                    alt="Scan to open ScanUtsav website"
+                    className="w-40 h-40 object-contain rounded-lg"
+                  />
+                ) : (
+                  <div className="w-40 h-40 bg-slate-100 animate-pulse rounded-lg flex items-center justify-center">
+                    <QrCode className="w-12 h-12 text-slate-400" />
+                  </div>
+                )}
+                <div className="mt-1">
+                  <span className="text-[9px] font-black bg-[#F2810C] text-white px-2 py-0.5 rounded-full shadow-sm tracking-wider uppercase">
+                    📷 Camera Scannable
+                  </span>
+                </div>
+              </div>
+            </Link>
 
             <div className="pt-2 border-t border-slate-200 text-center space-y-0.5 text-xs">
               <div className="font-bold text-amber-800 text-[11px]">The Taj Palace, Udaipur</div>
