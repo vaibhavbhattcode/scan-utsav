@@ -2,30 +2,61 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Download, FileText, Check, Sparkles, ShieldCheck, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Download, FileText, Sparkles, ShieldCheck, CheckCircle2, X, Printer, Check } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { useToast } from "@/components/ui/Toast";
 
+interface InvoiceData {
+  id: string;
+  date: string;
+  plan: string;
+  baseAmount: string;
+  cgst: string;
+  sgst: string;
+  total: string;
+  status: string;
+}
+
 export default function BillingWorkspacesPage() {
   const { showToast } = useToast();
-  const [activeWorkspace] = useState("Royal Planners Udaipur");
   const [currentPlan, setCurrentPlan] = useState("Royal Utsav");
   const [upgrading, setUpgrading] = useState(false);
+  const [selectedInvoice, setSelectedInvoice] = useState<InvoiceData | null>(null);
 
-  const [invoices, setInvoices] = useState([
-    { id: "INV-2026-881921", date: "2026-07-20", plan: "Royal Utsav Pass", amount: "₹2,117.80 + ₹381.20 GST", total: "₹2,499.00", status: "Paid" },
-    { id: "INV-2026-642018", date: "2026-06-15", plan: "Grand Enterprise Pass", amount: "₹5,931.36 + ₹1,067.64 GST", total: "₹6,999.00", status: "Paid" },
+  const [invoices, setInvoices] = useState<InvoiceData[]>([
+    {
+      id: "INV-2026-881921",
+      date: "2026-07-20",
+      plan: "Royal Utsav Pass",
+      baseAmount: "₹2,117.80",
+      cgst: "₹190.60",
+      sgst: "₹190.60",
+      total: "₹2,499.00",
+      status: "Paid",
+    },
+    {
+      id: "INV-2026-642018",
+      date: "2026-06-15",
+      plan: "Grand Enterprise Pass",
+      baseAmount: "₹5,931.36",
+      cgst: "₹533.82",
+      sgst: "₹533.82",
+      total: "₹6,999.00",
+      status: "Paid",
+    },
   ]);
 
-  const handleDownloadInvoice = (id: string) => {
-    showToast(`Downloading GST Tax Invoice ${id}...`, "success");
+  const handleOpenInvoice = (inv: InvoiceData) => {
+    setSelectedInvoice(inv);
+  };
+
+  const handlePrintInvoice = () => {
     window.print();
   };
 
   const handleUpgradePlan = async (planName: string, amountINR: number) => {
     setUpgrading(true);
     try {
-      // Step A: Request Razorpay Order Creation from POST /api/payments/razorpay
       const res = await fetch("/api/payments/razorpay", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -41,7 +72,6 @@ export default function BillingWorkspacesPage() {
         throw new Error(data.error || "Order creation failed");
       }
 
-      // Step B: Verify Payment & Issue GST Invoice
       const verifyRes = await fetch("/api/payments/razorpay", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -59,15 +89,20 @@ export default function BillingWorkspacesPage() {
         setCurrentPlan(planName);
         showToast(`Successfully upgraded to ${planName}! 🎉 GST Invoice issued.`, "success");
 
-        const newInv = {
+        const gst = verifyData.invoice.gstInvoice;
+        const newInv: InvoiceData = {
           id: verifyData.invoice.invoiceNumber,
           date: new Date().toISOString().split("T")[0],
           plan: `${planName} Pass`,
-          amount: `₹${verifyData.invoice.gstInvoice.baseAmountINR} + ₹${verifyData.invoice.gstInvoice.totalGSTINR} GST`,
-          total: `₹${verifyData.invoice.gstInvoice.totalINR}`,
+          baseAmount: `₹${gst.baseAmountINR}`,
+          cgst: `₹${gst.cgstINR}`,
+          sgst: `₹${gst.sgstINR}`,
+          total: `₹${gst.totalINR}`,
           status: "Paid",
         };
+
         setInvoices([newInv, ...invoices]);
+        setSelectedInvoice(newInv);
       } else {
         throw new Error(verifyData.error || "Payment verification failed");
       }
@@ -81,7 +116,7 @@ export default function BillingWorkspacesPage() {
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-16 sm:pt-20 pb-16 space-y-8 font-sans text-slate-900">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-6 print:hidden">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-6 print-hide">
         <div className="flex items-center gap-3">
           <Link href="/dashboard" className="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 transition-colors">
             <ArrowLeft className="w-5 h-5" />
@@ -100,7 +135,7 @@ export default function BillingWorkspacesPage() {
       </div>
 
       {/* Plan Upgrade Selector */}
-      <div className="bg-white p-8 rounded-3xl space-y-6 border border-slate-200 shadow-sm print:hidden">
+      <div className="bg-white p-8 rounded-3xl space-y-6 border border-slate-200 shadow-sm print-hide">
         <div className="space-y-1 border-b border-slate-100 pb-4">
           <h3 className="font-bold text-slate-900 text-xl font-display flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-[#F2810C]" />
@@ -187,7 +222,7 @@ export default function BillingWorkspacesPage() {
       </div>
 
       {/* GST Invoices Table */}
-      <div className="bg-white p-6 rounded-3xl space-y-4 border border-slate-200 shadow-sm">
+      <div className="bg-white p-6 rounded-3xl space-y-4 border border-slate-200 shadow-sm print-hide">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-4">
           <h3 className="font-bold text-slate-900 text-lg flex items-center gap-2 font-display">
             <FileText className="w-5 h-5 text-[#F2810C]" />
@@ -216,11 +251,11 @@ export default function BillingWorkspacesPage() {
                   <td className="p-4 font-black text-[#F2810C] font-mono">{inv.id}</td>
                   <td className="p-4 text-slate-700 font-bold font-mono">{inv.date}</td>
                   <td className="p-4 text-slate-900 font-bold font-sans">{inv.plan}</td>
-                  <td className="p-4 text-slate-700 font-bold font-mono">{inv.amount}</td>
+                  <td className="p-4 text-slate-700 font-bold font-mono">{inv.baseAmount} + GST</td>
                   <td className="p-4 text-emerald-700 font-extrabold font-mono text-sm">{inv.total}</td>
                   <td className="p-4 text-right">
-                    <Button variant="glass" size="sm" onClick={() => handleDownloadInvoice(inv.id)} className="bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 font-bold text-xs">
-                      <Download className="w-3.5 h-3.5 text-[#F2810C]" /> GST Invoice
+                    <Button variant="glass" size="sm" onClick={() => handleOpenInvoice(inv)} className="bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 font-bold text-xs">
+                      <Download className="w-3.5 h-3.5 text-[#F2810C]" /> View & Print GST Invoice
                     </Button>
                   </td>
                 </tr>
@@ -229,6 +264,147 @@ export default function BillingWorkspacesPage() {
           </table>
         </div>
       </div>
+
+      {/* PROFESSIONAL GST TAX INVOICE MODAL & PRINT TARGET */}
+      {selectedInvoice && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md overflow-y-auto print:p-0 print:bg-white print:static">
+          <div className="bg-white w-full max-w-3xl rounded-3xl shadow-2xl border border-slate-200 overflow-hidden font-sans print:shadow-none print:border-none print:max-w-full print:rounded-none">
+            {/* Modal Toolbar - Hidden when printing */}
+            <div className="bg-slate-900 text-white p-4 px-6 flex items-center justify-between print-hide">
+              <div className="flex items-center gap-2">
+                <FileText className="w-5 h-5 text-[#F2810C]" />
+                <span className="font-bold text-sm font-display">Tax Invoice — {selectedInvoice.id}</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={handlePrintInvoice}
+                  className="py-1.5 px-4 rounded-xl bg-[#F2810C] hover:bg-[#D97706] text-white text-xs font-bold flex items-center gap-2 shadow-sm transition-colors"
+                >
+                  <Printer className="w-4 h-4" /> Print / Save PDF
+                </button>
+                <button
+                  onClick={() => setSelectedInvoice(null)}
+                  className="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* PRINTABLE INVOICE CONTENT AREA */}
+            <div id="printable-invoice-area" className="p-8 sm:p-10 space-y-8 bg-white text-slate-900">
+              {/* Invoice Header */}
+              <div className="flex items-start justify-between border-b-2 border-slate-900 pb-6">
+                <div>
+                  <span className="text-3xl font-black tracking-tight text-slate-900 font-sans">
+                    Scan<span className="text-[#F2810C]">Utsav</span>
+                  </span>
+                  <p className="text-[10px] text-slate-500 font-extrabold tracking-widest uppercase mt-0.5">
+                    ScanUtsav EventTech Solutions Private Limited
+                  </p>
+                  <p className="text-[11px] text-slate-600 mt-2 max-w-sm leading-relaxed">
+                    104, Celebration Hub, Lake City, Udaipur, Rajasthan — 313001<br />
+                    <strong>GSTIN:</strong> 27AAAAA0000A1Z5 | <strong>CIN:</strong> U72900RJ2026PTC081234<br />
+                    <strong>Support:</strong> billing@scanutsav.com | +91 98765 00000
+                  </p>
+                </div>
+
+                <div className="text-right space-y-1">
+                  <span className="inline-block px-3 py-1 bg-amber-100 text-[#F2810C] font-black text-xs rounded-full border border-amber-300 tracking-wider">
+                    TAX INVOICE
+                  </span>
+                  <h2 className="text-xl font-black text-slate-900 font-mono pt-1">{selectedInvoice.id}</h2>
+                  <p className="text-xs text-slate-600 font-bold"><strong>Date:</strong> {selectedInvoice.date}</p>
+                  <p className="text-xs text-slate-600"><strong>Place of Supply:</strong> Rajasthan (08)</p>
+                </div>
+              </div>
+
+              {/* Bill To & Payment Info */}
+              <div className="grid grid-cols-2 gap-6 bg-slate-50 p-5 rounded-2xl border border-slate-200 text-xs">
+                <div>
+                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">BILLED TO (CUSTOMER)</span>
+                  <h3 className="text-sm font-black text-slate-900 mt-1">ScanUtsav Host User</h3>
+                  <p className="text-slate-600 mt-0.5">host@scanutsav.com</p>
+                  <p className="text-slate-600 font-medium">Workspace: Royal Planners Udaipur</p>
+                </div>
+                <div className="text-right space-y-1">
+                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">PAYMENT DETAILS</span>
+                  <p className="font-bold text-slate-900">Payment Status: <span className="text-emerald-700 font-extrabold">PAID</span></p>
+                  <p className="text-slate-600">Method: Razorpay Online (UPI / Card)</p>
+                  <p className="text-slate-600 font-mono text-[11px]">Txn ID: pay_{selectedInvoice.id.split("-")[2] || "998231"}</p>
+                </div>
+              </div>
+
+              {/* Itemized Table */}
+              <div className="rounded-xl overflow-hidden border border-slate-300">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-900 text-white font-bold uppercase text-[10px] tracking-wider">
+                    <tr>
+                      <th className="p-3">Service Description</th>
+                      <th className="p-3 text-center">SAC Code</th>
+                      <th className="p-3 text-right">Base Price</th>
+                      <th className="p-3 text-right">CGST (9%)</th>
+                      <th className="p-3 text-right">SGST (9%)</th>
+                      <th className="p-3 text-right">Total (INR)</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-200">
+                    <tr>
+                      <td className="p-3">
+                        <span className="font-bold text-slate-900">{selectedInvoice.plan}</span>
+                        <p className="text-[11px] text-slate-600">Includes AI Face Recognition, Live TV Stream & Cloud Storage Access</p>
+                      </td>
+                      <td className="p-3 text-center font-mono font-bold text-slate-700">998314</td>
+                      <td className="p-3 text-right font-mono font-bold text-slate-800">{selectedInvoice.baseAmount}</td>
+                      <td className="p-3 text-right font-mono text-slate-700">{selectedInvoice.cgst}</td>
+                      <td className="p-3 text-right font-mono text-slate-700">{selectedInvoice.sgst}</td>
+                      <td className="p-3 text-right font-mono font-black text-slate-900 text-sm">{selectedInvoice.total}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Summary Calculations */}
+              <div className="flex justify-end">
+                <div className="w-64 bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2 text-xs font-mono">
+                  <div className="flex justify-between text-slate-600">
+                    <span>Subtotal:</span>
+                    <span className="font-bold">{selectedInvoice.baseAmount}</span>
+                  </div>
+                  <div className="flex justify-between text-slate-600">
+                    <span>CGST (9%):</span>
+                    <span>{selectedInvoice.cgst}</span>
+                  </div>
+                  <div className="flex justify-between text-slate-600">
+                    <span>SGST (9%):</span>
+                    <span>{selectedInvoice.sgst}</span>
+                  </div>
+                  <div className="flex justify-between text-slate-900 text-sm font-black pt-2 border-t border-slate-300">
+                    <span>Total Paid:</span>
+                    <span className="text-[#F2810C]">{selectedInvoice.total}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Signature & Verification Seal */}
+              <div className="flex items-center justify-between pt-6 border-t border-slate-200">
+                <div className="space-y-1">
+                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">DIGITAL AUDIT & VERIFICATION</span>
+                  <div className="flex items-center gap-2 text-emerald-800 font-bold text-xs bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-200">
+                    <Check className="w-4 h-4 text-emerald-600" />
+                    <span>Digitally Verified GST Compliant Invoice</span>
+                  </div>
+                </div>
+
+                <div className="text-right space-y-1">
+                  <div className="text-xs font-black text-slate-900 font-display">ScanUtsav Technologies Pvt. Ltd.</div>
+                  <p className="text-[10px] text-slate-500 font-mono">Authorized Signatory (System Generated)</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
