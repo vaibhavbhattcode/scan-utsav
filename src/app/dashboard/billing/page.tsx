@@ -2,13 +2,13 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, CreditCard, Download, FileText, Building2, Check, Sparkles, ShieldCheck, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Download, FileText, Check, Sparkles, ShieldCheck, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { useToast } from "@/components/ui/Toast";
 
 export default function BillingWorkspacesPage() {
   const { showToast } = useToast();
-  const [activeWorkspace, setActiveWorkspace] = useState("Royal Planners Udaipur");
+  const [activeWorkspace] = useState("Royal Planners Udaipur");
   const [currentPlan, setCurrentPlan] = useState("Royal Utsav");
   const [upgrading, setUpgrading] = useState(false);
 
@@ -79,66 +79,72 @@ export default function BillingWorkspacesPage() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-8 space-y-8 font-sans">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-24 pb-16 space-y-8 font-sans text-slate-900">
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-white/10 pb-6 print:hidden">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-6 print:hidden">
         <div className="flex items-center gap-3">
-          <Link href="/dashboard" className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300">
+          <Link href="/dashboard" className="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 transition-colors">
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <div>
-            <span className="text-xs uppercase font-extrabold tracking-widest text-marigold-400">Enterprise Billing</span>
-            <h1 className="text-3xl font-black text-white font-display">Subscription Plans & GST Invoices</h1>
+            <span className="text-xs uppercase font-extrabold tracking-widest text-[#F2810C]">Enterprise Billing</span>
+            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 font-display">Subscription Plans & GST Invoices</h1>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-slate-400">Current Active Plan:</span>
-          <span className="px-3 py-1 bg-marigold-500/20 text-marigold-400 font-extrabold text-xs rounded-full border border-marigold-500/30">
+        <div className="flex items-center gap-2.5 bg-white p-2 px-4 rounded-2xl border border-slate-200 shadow-sm">
+          <span className="text-xs font-bold text-slate-600">Current Active Plan:</span>
+          <span className="px-3 py-1 bg-amber-100 text-[#F2810C] font-black text-xs rounded-full border border-amber-300">
             {currentPlan}
           </span>
         </div>
       </div>
 
       {/* Plan Upgrade Selector */}
-      <div className="glass-panel p-8 rounded-3xl space-y-6 border border-white/10 print:hidden">
-        <div className="space-y-1">
-          <h3 className="font-bold text-white text-lg font-display flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-gold-400" />
+      <div className="bg-white p-8 rounded-3xl space-y-6 border border-slate-200 shadow-sm print:hidden">
+        <div className="space-y-1 border-b border-slate-100 pb-4">
+          <h3 className="font-bold text-slate-900 text-xl font-display flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-[#F2810C]" />
             <span>Available Celebration Passes</span>
           </h3>
-          <p className="text-xs text-slate-300">Upgrade to Royal Utsav or Grand Utsav to unlock AI Face Recognition & Live TV Slideshows.</p>
+          <p className="text-xs text-slate-600 font-medium">
+            Upgrade to Royal Utsav or Grand Utsav to unlock AI Face Recognition & Live TV Slideshows.
+          </p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-xs">
           {/* Free Tier */}
-          <div className="glass-card p-6 rounded-2xl border border-white/10 space-y-4 flex flex-col justify-between">
-            <div className="space-y-2">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">STARTER PASS</span>
-              <h4 className="text-lg font-bold text-white font-display">Free Utsav</h4>
-              <div className="text-2xl font-black text-white">₹0 <span className="text-xs font-normal text-slate-400">/ event</span></div>
-              <ul className="space-y-2 pt-2 text-[11px] text-slate-300">
-                <li className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-emeraldWarm" /> Up to 50 Guests</li>
-                <li className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-emeraldWarm" /> 7 Days Cloud Access</li>
-                <li className="flex items-center gap-1.5 text-slate-500">❌ AI Face Recognition</li>
-                <li className="flex items-center gap-1.5 text-slate-500">❌ Live TV Slideshow</li>
+          <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200 space-y-4 flex flex-col justify-between">
+            <div className="space-y-3">
+              <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-600 bg-slate-200 px-2.5 py-1 rounded-full border border-slate-300">
+                STARTER PASS
+              </span>
+              <h4 className="text-xl font-black text-slate-900 font-display">Free Utsav</h4>
+              <div className="text-3xl font-black text-slate-900 font-display">₹0 <span className="text-xs font-semibold text-slate-500">/ event</span></div>
+              <ul className="space-y-2.5 pt-2 text-xs text-slate-700 font-medium">
+                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" /> Up to 50 Guests</li>
+                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" /> 7 Days Cloud Access</li>
+                <li className="flex items-center gap-2 text-slate-400">❌ AI Face Recognition</li>
+                <li className="flex items-center gap-2 text-slate-400">❌ Live TV Slideshow</li>
               </ul>
             </div>
-            <Button variant="outline" size="sm" disabled className="w-full text-xs">
+            <Button variant="outline" size="sm" disabled className="w-full text-xs font-bold text-slate-400 border-slate-300 bg-slate-100">
               Default Plan
             </Button>
           </div>
 
           {/* Royal Utsav */}
-          <div className={`glass-card p-6 rounded-2xl border ${currentPlan === "Royal Utsav" ? "border-marigold-500 shadow-glow-marigold bg-marigold-500/10" : "border-white/10"} space-y-4 flex flex-col justify-between`}>
-            <div className="space-y-2">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-gold-400">MOST POPULAR</span>
-              <h4 className="text-lg font-bold text-white font-display">Royal Utsav</h4>
-              <div className="text-2xl font-black text-white">₹2,499 <span className="text-xs font-normal text-slate-400">+ 18% GST</span></div>
-              <ul className="space-y-2 pt-2 text-[11px] text-slate-300">
-                <li className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-emeraldWarm" /> Unlimited Guests</li>
-                <li className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-emeraldWarm" /> AI Face Recognition</li>
-                <li className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-emeraldWarm" /> Live TV Slideshow</li>
-                <li className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-emeraldWarm" /> 30 Days Storage</li>
+          <div className={`p-6 rounded-2xl border ${currentPlan === "Royal Utsav" ? "border-[#F2810C] bg-amber-50/50 shadow-md ring-2 ring-amber-300" : "border-slate-200 bg-white"} space-y-4 flex flex-col justify-between`}>
+            <div className="space-y-3">
+              <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#F2810C] bg-amber-100 px-2.5 py-1 rounded-full border border-amber-300">
+                MOST POPULAR
+              </span>
+              <h4 className="text-xl font-black text-slate-900 font-display">Royal Utsav</h4>
+              <div className="text-3xl font-black text-slate-900 font-display">₹2,499 <span className="text-xs font-semibold text-slate-500">+ 18% GST</span></div>
+              <ul className="space-y-2.5 pt-2 text-xs text-slate-700 font-medium">
+                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" /> Unlimited Guests</li>
+                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" /> AI Face Recognition</li>
+                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" /> Live TV Slideshow</li>
+                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" /> 30 Days Storage</li>
               </ul>
             </div>
             <Button
@@ -146,23 +152,25 @@ export default function BillingWorkspacesPage() {
               size="sm"
               disabled={upgrading || currentPlan === "Royal Utsav"}
               onClick={() => handleUpgradePlan("Royal Utsav", 2499)}
-              className="w-full text-xs font-bold shadow-glow-marigold"
+              className="w-full text-xs font-extrabold bg-[#F2810C] hover:bg-[#D97706] text-white shadow-md"
             >
               {currentPlan === "Royal Utsav" ? "Active Plan" : upgrading ? "Processing..." : "Upgrade to Royal"}
             </Button>
           </div>
 
           {/* Grand Utsav */}
-          <div className={`glass-card p-6 rounded-2xl border ${currentPlan === "Grand Utsav" ? "border-gold-500 shadow-glow-gold bg-gold-500/10" : "border-white/10"} space-y-4 flex flex-col justify-between`}>
-            <div className="space-y-2">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-maroon-400">ENTERPRISE</span>
-              <h4 className="text-lg font-bold text-white font-display">Grand Utsav</h4>
-              <div className="text-2xl font-black text-white">₹6,999 <span className="text-xs font-normal text-slate-400">+ 18% GST</span></div>
-              <ul className="space-y-2 pt-2 text-[11px] text-slate-300">
-                <li className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-emeraldWarm" /> Unlimited Guests & Events</li>
-                <li className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-emeraldWarm" /> High-Accuracy AI Face Search</li>
-                <li className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-emeraldWarm" /> Dedicated Cloud Folder</li>
-                <li className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-emeraldWarm" /> Lifetime Cloud Backup</li>
+          <div className={`p-6 rounded-2xl border ${currentPlan === "Grand Utsav" ? "border-amber-600 bg-amber-50/50 shadow-md ring-2 ring-amber-400" : "border-slate-200 bg-white"} space-y-4 flex flex-col justify-between`}>
+            <div className="space-y-3">
+              <span className="text-[10px] font-extrabold uppercase tracking-widest text-amber-800 bg-amber-200 px-2.5 py-1 rounded-full border border-amber-300">
+                ENTERPRISE
+              </span>
+              <h4 className="text-xl font-black text-slate-900 font-display">Grand Utsav</h4>
+              <div className="text-3xl font-black text-slate-900 font-display">₹6,999 <span className="text-xs font-semibold text-slate-500">+ 18% GST</span></div>
+              <ul className="space-y-2.5 pt-2 text-xs text-slate-700 font-medium">
+                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" /> Unlimited Guests & Events</li>
+                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" /> High-Accuracy AI Face Search</li>
+                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" /> Dedicated Cloud Folder</li>
+                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" /> Lifetime Cloud Backup</li>
               </ul>
             </div>
             <Button
@@ -170,7 +178,7 @@ export default function BillingWorkspacesPage() {
               size="sm"
               disabled={upgrading || currentPlan === "Grand Utsav"}
               onClick={() => handleUpgradePlan("Grand Utsav", 6999)}
-              className="w-full text-xs font-bold text-slate-950"
+              className="w-full text-xs font-extrabold bg-amber-500 hover:bg-amber-600 text-white shadow-md"
             >
               {currentPlan === "Grand Utsav" ? "Active Plan" : upgrading ? "Processing..." : "Upgrade to Grand"}
             </Button>
@@ -179,20 +187,20 @@ export default function BillingWorkspacesPage() {
       </div>
 
       {/* GST Invoices Table */}
-      <div className="glass-panel p-6 rounded-3xl space-y-4 border border-white/10">
-        <div className="flex items-center justify-between">
-          <h3 className="font-bold text-white text-base flex items-center gap-2 font-display">
-            <FileText className="w-5 h-5 text-marigold-400" />
+      <div className="bg-white p-6 rounded-3xl space-y-4 border border-slate-200 shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-4">
+          <h3 className="font-bold text-slate-900 text-lg flex items-center gap-2 font-display">
+            <FileText className="w-5 h-5 text-[#F2810C]" />
             <span>Tax Invoices & GST Receipts (18% GST Compliance)</span>
           </h3>
-          <span className="text-[10px] text-emeraldWarm font-extrabold uppercase tracking-wider flex items-center gap-1">
-            <ShieldCheck className="w-3.5 h-3.5" /> GSTIN: 27AAAAA0000A1Z5
+          <span className="text-[10px] text-emerald-800 font-black uppercase tracking-wider flex items-center gap-1 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" /> GSTIN: 27AAAAA0000A1Z5
           </span>
         </div>
 
-        <div className="glass-panel rounded-2xl overflow-hidden border border-white/10">
-          <table className="w-full text-left text-xs text-slate-300">
-            <thead className="bg-slate-900/80 text-white font-bold uppercase text-[10px] tracking-wider border-b border-white/10">
+        <div className="rounded-2xl overflow-hidden border border-slate-200 shadow-sm">
+          <table className="w-full text-left text-xs text-slate-800">
+            <thead className="bg-slate-900 text-white font-bold uppercase text-[10px] tracking-wider">
               <tr>
                 <th className="p-4">Invoice ID</th>
                 <th className="p-4">Date</th>
@@ -202,17 +210,17 @@ export default function BillingWorkspacesPage() {
                 <th className="p-4 text-right">GST Receipt</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5 font-mono">
+            <tbody className="divide-y divide-slate-200 bg-white">
               {invoices.map((inv) => (
-                <tr key={inv.id} className="hover:bg-white/5 transition-colors">
-                  <td className="p-4 font-bold text-marigold-400">{inv.id}</td>
-                  <td className="p-4 text-slate-400">{inv.date}</td>
-                  <td className="p-4 text-white font-sans">{inv.plan}</td>
-                  <td className="p-4 text-slate-300">{inv.amount}</td>
-                  <td className="p-4 text-emeraldWarm font-bold">{inv.total}</td>
+                <tr key={inv.id} className="hover:bg-slate-50 transition-colors">
+                  <td className="p-4 font-black text-[#F2810C] font-mono">{inv.id}</td>
+                  <td className="p-4 text-slate-700 font-bold font-mono">{inv.date}</td>
+                  <td className="p-4 text-slate-900 font-bold font-sans">{inv.plan}</td>
+                  <td className="p-4 text-slate-700 font-bold font-mono">{inv.amount}</td>
+                  <td className="p-4 text-emerald-700 font-extrabold font-mono text-sm">{inv.total}</td>
                   <td className="p-4 text-right">
-                    <Button variant="glass" size="sm" onClick={() => handleDownloadInvoice(inv.id)}>
-                      <Download className="w-3.5 h-3.5 text-gold-400" /> GST Invoice
+                    <Button variant="glass" size="sm" onClick={() => handleDownloadInvoice(inv.id)} className="bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 font-bold text-xs">
+                      <Download className="w-3.5 h-3.5 text-[#F2810C]" /> GST Invoice
                     </Button>
                   </td>
                 </tr>
