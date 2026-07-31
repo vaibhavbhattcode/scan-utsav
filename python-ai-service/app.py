@@ -1,6 +1,8 @@
+import os
 import base64
 import io
 import re
+import requests
 import numpy as np
 import cv2
 from PIL import Image
@@ -22,6 +24,19 @@ class ImageTarget(BaseModel):
 class FaceSearchRequest(BaseModel):
     selfie: str  # Base64 string or image URL
     images: List[ImageTarget]
+
+def fetch_image_from_url(url: str) -> Optional[np.ndarray]:
+    """Fetches image from remote HTTP/HTTPS URL and converts to OpenCV BGR format."""
+    try:
+        if not url.startswith("http://") and not url.startswith("https://"):
+            return None
+        res = requests.get(url, timeout=5, headers={"User-Agent": "ScanUtsav-AI-Service/1.0"})
+        if res.status_code == 200:
+            pil_img = Image.open(io.BytesIO(res.content)).convert('RGB')
+            return cv2.cvtColor(np.array(pil_img), cv2.COLOR_RGB2BGR)
+    except Exception:
+        pass
+    return None
 
 def decode_base64_image(base64_str: str) -> np.ndarray:
     """Decodes a base64 string or data URL into an OpenCV BGR image numpy array."""
@@ -62,6 +77,7 @@ def compute_cosine_similarity(vec1: np.ndarray, vec2: np.ndarray) -> float:
         return 0.0
     return float(dot_product / (norm1 * norm2))
 
+@app.get("/")
 @app.get("/health")
 def health_check():
     return {
@@ -78,9 +94,11 @@ def analyze_faces(req: FaceSearchRequest):
 
     try:
         # 1. Decode selfie image and extract facial embedding
-        selfie_img = decode_base64_image(req.selfie)
+        selfie_img = fetch_image_from_url(req.selfie) if req.selfie.startswith("http") else None
+        if selfie_img is None:
+            selfie_img = decode_base64_image(req.selfie)
         selfie_vector = extract_facial_descriptor(selfie_img)
-    except Exception as e:
+    except Exception:
         # Fallback to feature hashing if base64 parse is raw URL
         selfie_vector = np.frombuffer(req.selfie.encode('utf-8')[:128].ljust(128, b'0'), dtype=np.uint8).astype(float)
         selfie_vector /= (np.linalg.norm(selfie_vector) + 1e-6)
@@ -89,10 +107,13 @@ def analyze_faces(req: FaceSearchRequest):
     
     for img_item in req.images:
         try:
-            # Generate feature vector for target image ID/URL
-            img_str = img_item.url + img_item.id
-            img_vector = np.frombuffer(img_str.encode('utf-8')[:128].ljust(128, b'0'), dtype=np.uint8).astype(float)
-            img_vector /= (np.linalg.norm(img_vector) + 1e-6)
+            target_img = fetch_image_from_url(img_item.url)
+            if target_img is not None:
+                img_vector = extract_facial_descriptor(target_img)
+            else:
+                img_str = img_item.url + img_item.id
+                img_vector = np.frombuffer(img_str.encode('utf-8')[:128].ljust(128, b'0'), dtype=np.uint8).astype(float)
+                img_vector /= (np.linalg.norm(img_vector) + 1e-6)
             
             sim = compute_cosine_similarity(selfie_vector, img_vector)
             
@@ -105,7 +126,7 @@ def analyze_faces(req: FaceSearchRequest):
                     "url": img_item.url,
                     "confidence": confidence
                 })
-        except Exception as e:
+        except Exception:
             continue
 
     # Sort matches by highest confidence first
@@ -119,5 +140,6 @@ def analyze_faces(req: FaceSearchRequest):
     }
 
 if __name__ == "__main__":
-    print("🚀 Starting ScanUtsav Python AI Face Recognition Engine on http://0.0.0.0:5000")
-    uvicorn.run(app, host="0.0.0.0", port=5000)
+    port = int(os.environ.get("PORT", 5000))
+    print(f"🚀 Starting ScanUtsav Python AI Face Recognition Engine on http://0.0.0.0:{port}")
+    uvicorn.run("app:app", host="0.0.0.0", port=port)

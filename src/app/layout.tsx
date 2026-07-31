@@ -25,6 +25,14 @@ export const metadata: Metadata = {
     locale: "en_IN",
     type: "website",
   },
+  icons: {
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/images/logo-icon.png", type: "image/png" },
+    ],
+    shortcut: "/images/logo-icon.png",
+    apple: "/images/logo-icon.png",
+  },
   twitter: {
     card: "summary_large_image",
     title: "ScanUtsav - Scan Once. Relive Forever",
