@@ -79,7 +79,7 @@ export default function BillingWorkspacesPage() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-24 pb-16 space-y-8 font-sans text-slate-900">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-16 sm:pt-20 pb-16 space-y-8 font-sans text-slate-900">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-6 print:hidden">
         <div className="flex items-center gap-3">
