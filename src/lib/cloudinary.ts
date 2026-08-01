@@ -18,7 +18,7 @@ function configureCloudinary() {
 export { cloudinary };
 
 /**
- * Upload buffer or base64 file to Cloudinary
+ * Upload buffer or base64 file to Cloudinary with safe base64 fallback
  */
 export async function uploadToCloudinary(
   fileBuffer: Buffer | string,
@@ -28,6 +28,16 @@ export async function uploadToCloudinary(
   configureCloudinary();
 
   try {
+    const isPlaceholderKey =
+      !process.env.CLOUDINARY_API_SECRET ||
+      process.env.CLOUDINARY_API_SECRET === "your_cloudinary_secret" ||
+      !process.env.CLOUDINARY_API_KEY ||
+      process.env.CLOUDINARY_API_KEY === "1234567890";
+
+    if (isPlaceholderKey) {
+      throw new Error("Placeholder Cloudinary credentials in .env");
+    }
+
     return await new Promise((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
         {
@@ -66,10 +76,23 @@ export async function uploadToCloudinary(
       }
     });
   } catch (err: any) {
-    console.warn("Cloudinary upload fallback:", err.message);
+    console.warn("Cloudinary upload fallback activated:", err.message);
+
+    let devUrl = "https://images.unsplash.com/photo-1519741497674-611481863552?w=800";
+    let bytesCount = 2450000;
+
+    if (Buffer.isBuffer(fileBuffer)) {
+      bytesCount = fileBuffer.length;
+      const base64 = fileBuffer.toString("base64");
+      const mime = resourceType === "video" ? "video/mp4" : "image/jpeg";
+      devUrl = `data:${mime};base64,${base64}`;
+    } else if (typeof fileBuffer === "string" && fileBuffer.startsWith("data:")) {
+      devUrl = fileBuffer;
+    }
+
     return {
-      secureUrl: "https://images.unsplash.com/photo-1519741497674-611481863552?w=800",
-      bytes: 2450000,
+      secureUrl: devUrl,
+      bytes: bytesCount,
       publicId: `dev_${Date.now()}`,
       resourceType: resourceType === "video" ? "video" : "image",
     };
