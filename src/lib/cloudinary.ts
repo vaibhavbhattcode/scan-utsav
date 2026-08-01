@@ -1,15 +1,19 @@
 import { v2 as cloudinary } from "cloudinary";
 
-const CLOUDINARY_CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME || "scanutsav-demo";
-const CLOUDINARY_API_KEY = process.env.CLOUDINARY_API_KEY || "1234567890";
-const CLOUDINARY_API_SECRET = process.env.CLOUDINARY_API_SECRET || "your_cloudinary_secret";
+function configureCloudinary() {
+  const cloud_name = process.env.CLOUDINARY_CLOUD_NAME || "scanutsav-demo";
+  const api_key = process.env.CLOUDINARY_API_KEY || "1234567890";
+  const api_secret = process.env.CLOUDINARY_API_SECRET || "your_cloudinary_secret";
 
-cloudinary.config({
-  cloud_name: CLOUDINARY_CLOUD_NAME,
-  api_key: CLOUDINARY_API_KEY,
-  api_secret: CLOUDINARY_API_SECRET,
-  secure: true,
-});
+  cloudinary.config({
+    cloud_name,
+    api_key,
+    api_secret,
+    secure: true,
+  });
+
+  return { cloud_name, api_key, api_secret };
+}
 
 export { cloudinary };
 
@@ -21,6 +25,8 @@ export async function uploadToCloudinary(
   folder: string = "scanutsav_events",
   resourceType: "image" | "video" | "auto" = "auto"
 ): Promise<{ secureUrl: string; bytes: number; publicId: string; resourceType: string }> {
+  configureCloudinary();
+
   try {
     return await new Promise((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
@@ -44,7 +50,6 @@ export async function uploadToCloudinary(
       if (Buffer.isBuffer(fileBuffer)) {
         uploadStream.end(fileBuffer);
       } else {
-        // Base64 string input
         cloudinary.uploader.upload(
           fileBuffer,
           { folder, resource_type: resourceType },
@@ -62,10 +67,9 @@ export async function uploadToCloudinary(
     });
   } catch (err: any) {
     console.warn("Cloudinary upload fallback:", err.message);
-    // Dev fallback if Cloudinary API keys are placeholder
     return {
       secureUrl: "https://images.unsplash.com/photo-1519741497674-611481863552?w=800",
-      bytes: 2450000, // ~2.45 MB
+      bytes: 2450000,
       publicId: `dev_${Date.now()}`,
       resourceType: resourceType === "video" ? "video" : "image",
     };
