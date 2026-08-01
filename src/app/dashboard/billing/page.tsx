@@ -334,7 +334,7 @@ export default function BillingWorkspacesPage() {
 
       {/* PROFESSIONAL GST TAX INVOICE MODAL & PRINT TARGET */}
       {selectedInvoice && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 bg-slate-950/95 backdrop-blur-2xl overflow-y-auto print:p-0 print:bg-white print:static">
+        <div className="fixed inset-0 z-[9999] !mt-0 !top-0 !left-0 !right-0 !bottom-0 flex items-center justify-center p-4 sm:p-6 bg-slate-950/95 backdrop-blur-2xl overflow-y-auto print:p-0 print:bg-white print:static">
           <div className="bg-white w-full max-w-3xl rounded-3xl shadow-2xl border border-slate-200 overflow-hidden font-sans my-auto print:shadow-none print:border-none print:max-w-full print:rounded-none">
             {/* Modal Toolbar - Hidden when printing */}
             <div className="bg-slate-900 text-white p-4 px-6 flex items-center justify-between print-hide">
