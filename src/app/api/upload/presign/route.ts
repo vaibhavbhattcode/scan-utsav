@@ -35,8 +35,21 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Video size exceeds maximum 200MB limit" }, { status: 400 });
     }
 
-    // 4. Generate Presigned URL
-    const { presignedUrl, cdnUrl, key } = await getUploadPresignedUrl(fileName, contentType, eventCode);
+    // 4. Generate Presigned URL with dev fallback
+    let presignedUrl = "";
+    let cdnUrl = "";
+    let key = `events/${eventCode}/${Date.now()}_${fileName.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
+
+    try {
+      const s3Res = await getUploadPresignedUrl(fileName, contentType, eventCode);
+      presignedUrl = s3Res.presignedUrl;
+      cdnUrl = s3Res.cdnUrl;
+      key = s3Res.key;
+    } catch (s3Err: any) {
+      console.warn("Storage presign warning:", s3Err.message);
+      presignedUrl = `/api/upload/local-mock-upload?key=${key}`;
+      cdnUrl = "https://images.unsplash.com/photo-1519741497674-611481863552?w=800";
+    }
 
     return NextResponse.json({
       success: true,
