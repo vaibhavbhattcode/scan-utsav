@@ -174,21 +174,23 @@ export default function GuestEventMemoryPage() {
   };
 
   const handleRunFaceSearch = async () => {
-    if (!selfiePreview || !eventData?._id) { showToast("Please upload a selfie image to search", "error"); return; }
+    if (!selfiePreview) { showToast("Please upload a selfie image to search", "error"); return; }
     setScanningFace(true);
     try {
       const res = await fetch("/api/media/face-search", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ eventId: eventData._id, selfieData: selfiePreview }),
+        body: JSON.stringify({ eventId: eventData?._id || eventCode, selfieData: selfiePreview }),
       });
       const data = await res.json();
       if (res.ok && data.success) {
         setFaceMatches(data.matches || []);
         showToast(`AI Scan Complete! Found ${data.count} photos featuring you 🎉`, "success");
-      } else throw new Error(data.error || "Face search failed");
+      } else {
+        throw new Error(data.error || "Face search failed");
+      }
     } catch (err: any) {
-      showToast(err.message || "AI Face Search error", "error");
+      showToast(err.message || "Face search failed", "error");
     } finally {
       setScanningFace(false);
     }
