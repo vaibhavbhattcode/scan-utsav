@@ -43,15 +43,22 @@ export async function POST(req: Request) {
     let cdnUrl = "";
     let key = `events/${eventCode}/${Date.now()}_${fileName.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
 
-    try {
-      const s3Res = await getUploadPresignedUrl(fileName, contentType, eventCode);
-      presignedUrl = s3Res.presignedUrl;
-      cdnUrl = s3Res.cdnUrl;
-      key = s3Res.key;
-    } catch (s3Err: any) {
-      console.warn("Storage presign warning:", s3Err.message);
+    const isDemoKey = !process.env.STORAGE_ACCESS_KEY || process.env.STORAGE_ACCESS_KEY === "demo_access_key";
+
+    if (isDemoKey) {
       presignedUrl = `/api/upload/local-mock-upload?key=${key}`;
-      cdnUrl = "https://images.unsplash.com/photo-1519741497674-611481863552?w=800";
+      cdnUrl = `https://images.unsplash.com/photo-1519741497674-611481863552?w=800`;
+    } else {
+      try {
+        const s3Res = await getUploadPresignedUrl(fileName, contentType, eventCode);
+        presignedUrl = s3Res.presignedUrl;
+        cdnUrl = s3Res.cdnUrl;
+        key = s3Res.key;
+      } catch (s3Err: any) {
+        console.warn("Storage presign warning:", s3Err.message);
+        presignedUrl = `/api/upload/local-mock-upload?key=${key}`;
+        cdnUrl = "https://images.unsplash.com/photo-1519741497674-611481863552?w=800";
+      }
     }
 
     return NextResponse.json({
