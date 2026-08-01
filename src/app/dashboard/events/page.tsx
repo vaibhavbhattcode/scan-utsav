@@ -55,7 +55,7 @@ export default function HostEventsPage() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-16 sm:pt-20 pb-12 space-y-8 font-sans text-slate-900">
+    <div className="max-w-7xl mx-auto px-4 sm:px-8 pt-16 sm:pt-20 pb-12 space-y-8 font-sans text-slate-900">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-6">
         <div>
@@ -63,8 +63,8 @@ export default function HostEventsPage() {
           <h1 className="text-2xl sm:text-4xl font-black text-slate-900 font-display">Event Management Desk</h1>
         </div>
 
-        <Link href="/dashboard/events">
-          <Button variant="primary" size="md" className="shadow-md bg-[#F2810C] hover:bg-[#D97706] text-white border border-[#F2810C]">
+        <Link href="/dashboard/events" className="shrink-0 flex-shrink-0">
+          <Button variant="primary" size="md" className="shrink-0 shadow-md bg-[#F2810C] hover:bg-[#D97706] text-white border border-[#F2810C] whitespace-nowrap">
             <Plus className="w-4 h-4" />
             <span>Create Event</span>
           </Button>
