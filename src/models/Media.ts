@@ -4,8 +4,8 @@ export interface IMedia extends Document {
   eventId: string;
   uploaderName: string;
   wishMessage?: string;
-  url: string;
-  mediaType: "photo" | "video";
+  mediaUrl: string;
+  mediaType: "image" | "video";
   status: "approved" | "pending" | "rejected";
   reactions: {
     love: number;
@@ -29,8 +29,8 @@ const MediaSchema: Schema = new Schema({
   eventId: { type: String, required: true },
   uploaderName: { type: String, default: "Guest" },
   wishMessage: { type: String },
-  url: { type: String, required: true },
-  mediaType: { type: String, enum: ["photo", "video"], default: "photo" },
+  mediaUrl: { type: String, required: true },
+  mediaType: { type: String, enum: ["image", "video"], default: "image" },
   status: { type: String, enum: ["approved", "pending", "rejected"], default: "approved" },
   reactions: {
     love: { type: Number, default: 0 },

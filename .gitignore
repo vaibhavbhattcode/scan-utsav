@@ -32,3 +32,6 @@ Thumbs.db
 # Archives & Temp Build Files
 *.zip
 *.tsbuildinfo
+
+# User uploaded media (dev)
+/public/uploads/

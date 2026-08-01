@@ -14,6 +14,7 @@ interface MediaItem {
   mediaType: "image" | "video";
   uploaderName: string;
   wishMessage: string;
+  status?: string;
   createdAt: string;
 }
 
@@ -128,8 +129,23 @@ export default function GuestEventMemoryPage() {
       return;
     }
 
+    // 0ms Instant Local Preview rendering
+    const localUrl = URL.createObjectURL(file);
+    const isVid = file.type.startsWith("video/");
+    const tempId = `temp_${Date.now()}`;
+    const tempItem: MediaItem = {
+      _id: tempId,
+      mediaUrl: localUrl,
+      mediaType: isVid ? "video" : "image",
+      uploaderName: guestName || "Guest",
+      wishMessage: wishMessage || "",
+      status: "approved",
+      createdAt: new Date().toISOString(),
+    };
+
+    setMediaList((prev) => [tempItem, ...prev]);
     setUploading(true);
-    setUploadProgress(20);
+    setUploadProgress(25);
 
     try {
       const formData = new FormData();
@@ -138,7 +154,7 @@ export default function GuestEventMemoryPage() {
       formData.append("uploaderName", guestName || "Guest");
       formData.append("wishMessage", wishMessage || "");
 
-      setUploadProgress(50);
+      setUploadProgress(60);
 
       const res = await fetch("/api/upload/cloudinary", {
         method: "POST",
@@ -149,13 +165,12 @@ export default function GuestEventMemoryPage() {
       if (!res.ok || !data.success) throw new Error(data.error || "Cloudinary upload failed");
 
       if (data.media) {
-        setMediaList((prev) => [data.media, ...prev]);
+        setMediaList((prev) => prev.map((item) => (item._id === tempId ? data.media : item)));
       }
 
       setUploadProgress(100);
       showToast("Your memory is saved in the event album! 🎉", "success");
       setWishMessage("");
-      fetchMedia(eventData?._id || eventCode);
     } catch (err: any) {
       showToast(err.message || "Upload failed.", "error");
     } finally {
@@ -332,7 +347,13 @@ export default function GuestEventMemoryPage() {
                   {m.mediaType === "video" ? (
                     <video src={m.mediaUrl} controls className="w-full h-48 object-cover" />
                   ) : (
-                    <img src={m.mediaUrl} alt={m.uploaderName} className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300" />
+                    <img
+                      src={m.mediaUrl}
+                      alt={m.uploaderName}
+                      loading="lazy"
+                      decoding="async"
+                      className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
                   )}
                   {matchInfo && (
                     <div className="absolute top-2 left-2 bg-emerald-600 text-white px-2 py-0.5 rounded-full text-[10px] font-black flex items-center gap-1">

@@ -23,9 +23,11 @@ export async function GET(req: Request) {
 
     // Get event IDs belonging to host
     const hostEvents = await Event.find(filter).select("_id code").catch(() => []);
+    const eventIds = hostEvents.map((e) => e._id?.toString());
     const eventCodes = hostEvents.map((e) => e.code);
+    const allEventIdentifiers = Array.from(new Set(eventIds.concat(eventCodes)));
 
-    const mediaFilter = eventCodes.length > 0 ? { eventId: { $in: eventCodes } } : {};
+    const mediaFilter = allEventIdentifiers.length > 0 ? { eventId: { $in: allEventIdentifiers } } : {};
 
     // Count host's actual uploaded memories
     const totalMemories = await Media.countDocuments(mediaFilter).catch(() => 0);

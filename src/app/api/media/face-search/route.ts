@@ -67,15 +67,11 @@ export async function POST(req: Request) {
 
   } catch (error: any) {
     console.error("AI Face Search API Error:", error);
-    const memoryStore: any[] = (global as any)._scanutsav_media_store || [];
-    const imageItems = memoryStore.filter((m: any) => m.mediaType === "image" || !m.mediaType);
-    const matches = await matchSelfieToMediaList((await req.json().catch(() => ({}))).selfieData || "", imageItems as any).catch(() => []);
-
     return NextResponse.json({
       success: true,
-      matches: matches || [],
-      count: matches?.length || 0,
-      totalScanned: imageItems.length,
+      matches: [],
+      count: 0,
+      totalScanned: 0,
     }, { status: 200 });
   }
 }
