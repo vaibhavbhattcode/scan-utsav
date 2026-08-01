@@ -19,35 +19,7 @@ interface HostEventItem {
 
 export default function HostEventsPage() {
   const { showToast } = useToast();
-  const [events, setEvents] = useState<HostEventItem[]>([
-    {
-      id: "e1",
-      title: "Ananya & Vikram's Wedding",
-      code: "ananya-vikram-2026",
-      eventType: "wedding",
-      mediaCount: 248,
-      status: "Live",
-      coverImage: "https://images.unsplash.com/photo-1519741497674-611481863552?w=500",
-    },
-    {
-      id: "e2",
-      title: "Maha Ganesh Chaturthi Pandal",
-      code: "ganesh-utsav-2026",
-      eventType: "ganesh-chaturthi",
-      mediaCount: 412,
-      status: "Live",
-      coverImage: "https://images.unsplash.com/photo-1605379399642-870262d3d051?w=500",
-    },
-    {
-      id: "e3",
-      title: "Rohan's 30th Birthday Bash",
-      code: "rohan-birthday-30",
-      eventType: "birthday",
-      mediaCount: 184,
-      status: "Upcoming",
-      coverImage: "https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=500",
-    },
-  ]);
+  const [events, setEvents] = useState<HostEventItem[]>([]);
 
   // Create Event Modal State
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -76,25 +48,17 @@ export default function HostEventsPage() {
     fetch("/api/events")
       .then((res) => res.json())
       .then((data) => {
-        if (data.success && data.events && data.events.length > 0) {
+        if (data.success && data.events) {
           const mapped = data.events.map((e: any) => ({
             id: e._id,
             title: e.title,
             code: e.code,
             eventType: e.eventType || "wedding",
-            mediaCount: Math.floor(Math.random() * 200) + 40,
+            mediaCount: e.mediaCount || 0,
             status: "Live" as const,
             coverImage: e.coverImage || "https://images.unsplash.com/photo-1519741497674-611481863552?w=500",
           }));
-          setEvents((prev) => {
-            const combined = [...mapped];
-            prev.forEach((item) => {
-              if (!combined.some((c) => c.code === item.code)) {
-                combined.push(item);
-              }
-            });
-            return combined;
-          });
+          setEvents(mapped);
         }
       })
       .catch((err) => console.warn("Events load warning:", err));
@@ -189,9 +153,31 @@ export default function HostEventsPage() {
       <StorageQuotaMeter usedMB={4850} plan="royal" />
 
       {/* Events Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {events.map((evt) => (
-          <div key={evt.id} className="glass-card rounded-3xl p-6 border border-slate-200 space-y-4 flex flex-col justify-between bg-white shadow-sm hover:shadow-md transition-shadow">
+      {events.length === 0 ? (
+        <div className="bg-white p-12 rounded-3xl border border-slate-200 text-center space-y-4 shadow-sm">
+          <div className="w-16 h-16 rounded-full bg-amber-100 text-[#F2810C] mx-auto flex items-center justify-center border border-amber-300">
+            <QrCode className="w-8 h-8" />
+          </div>
+          <div className="space-y-1">
+            <h3 className="text-xl font-bold text-slate-900 font-display">No Events Created Yet</h3>
+            <p className="text-xs text-slate-600 font-medium max-w-sm mx-auto">
+              Create your first celebration event to generate live QR standees, guest upload links, and 4K TV streams.
+            </p>
+          </div>
+          <Button
+            variant="primary"
+            size="md"
+            onClick={() => setShowCreateModal(true)}
+            className="bg-[#F2810C] hover:bg-[#D97706] text-white font-extrabold shadow-md"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Create Your First Event</span>
+          </Button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {events.map((evt) => (
+            <div key={evt.id} className="glass-card rounded-3xl p-6 border border-slate-200 space-y-4 flex flex-col justify-between bg-white shadow-sm hover:shadow-md transition-shadow">
             <div className="space-y-3">
               <div className="relative h-44 rounded-2xl overflow-hidden border border-slate-200">
                 <img src={evt.coverImage} alt={evt.title} className="w-full h-full object-cover" />
@@ -230,9 +216,10 @@ export default function HostEventsPage() {
                 </Button>
               </Link>
             </div>
-          </div>
-        ))}
-      </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* CREATE NEW EVENT MODAL */}
       {showCreateModal && (

@@ -40,16 +40,14 @@ export async function GET(req: Request) {
     ]);
 
     const totalBytes = storageResult[0]?.totalBytes || 0;
-    const usedMB = totalBytes > 0 ? Math.round(totalBytes / (1024 * 1024)) : 4850;
-
-    // Dynamic unique scans metric based on uploaded memories count
-    const uniqueScans = Math.max(Math.round(totalMemories * 0.51) || 428, 428);
+    const usedMB = Math.round(totalBytes / (1024 * 1024));
+    const uniqueScans = Math.round(totalMemories * 0.85);
 
     return NextResponse.json({
       success: true,
       stats: {
-        totalEvents: Math.max(totalEvents, 3),
-        totalMemories: Math.max(totalMemories, 844),
+        totalEvents,
+        totalMemories,
         moderationQueue,
         usedMB,
         uniqueScans,
