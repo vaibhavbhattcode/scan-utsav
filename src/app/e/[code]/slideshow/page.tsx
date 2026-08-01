@@ -42,9 +42,10 @@ export default function LiveVenueSlideshow() {
       .catch(() => {});
   }, [eventCode]);
 
-  // 2. Poll approved media every 15 seconds for real-time TV stream updates
-  const fetchApprovedMedia = (eventId: string) => {
-    fetch(`/api/media?eventId=${eventId}&status=approved`)
+  // 2. Poll approved media every 6 seconds for instant TV stream updates
+  const fetchApprovedMedia = (idOrCode?: string) => {
+    const query = idOrCode ? `eventId=${idOrCode}&eventCode=${eventCode}` : `eventCode=${eventCode}`;
+    fetch(`/api/media?${query}&status=approved`)
       .then((res) => res.json())
       .then((data) => {
         if (data.success && data.media && data.media.length > 0) {
@@ -55,12 +56,12 @@ export default function LiveVenueSlideshow() {
   };
 
   useEffect(() => {
-    if (!eventData?._id) return;
+    fetchApprovedMedia(eventData?._id);
     const interval = setInterval(() => {
-      fetchApprovedMedia(eventData._id);
-    }, 15000);
+      fetchApprovedMedia(eventData?._id);
+    }, 6000);
     return () => clearInterval(interval);
-  }, [eventData]);
+  }, [eventData, eventCode]);
 
   // 3. Auto slide rotation every 6 seconds
   useEffect(() => {
