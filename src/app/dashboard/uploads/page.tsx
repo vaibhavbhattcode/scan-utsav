@@ -57,7 +57,7 @@ export default function ModerationGridPage() {
   const pendingItems = items.filter(i => i.status === "pending");
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-8 space-y-8 font-sans text-slate-900">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-16 sm:pt-20 pb-12 space-y-8 font-sans text-slate-900">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-6">
         <div className="flex items-center gap-3">
