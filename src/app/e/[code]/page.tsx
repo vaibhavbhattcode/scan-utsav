@@ -104,7 +104,17 @@ export default function GuestEventMemoryPage() {
     fetch(`/api/media?eventId=${idOrCode}&eventCode=${eventCode}`)
       .then((res) => res.json())
       .then((data) => {
-        if (data.success && data.media) setMediaList(data.media || []);
+        if (data.success && data.media) {
+          setMediaList((prev) => {
+            const combined = [...data.media];
+            prev.forEach((p) => {
+              if (!combined.some((c) => c._id === p._id || c.mediaUrl === p.mediaUrl)) {
+                combined.push(p);
+              }
+            });
+            return combined;
+          });
+        }
       })
       .finally(() => setLoading(false));
   };

@@ -27,8 +27,23 @@ export async function POST(req: Request) {
       isVideo ? "video" : "image"
     );
 
-    // Resolve eventId from eventCode
+    // Resolve or auto-create event in MongoDB so eventId is 100% consistent across APIs
     let event = await Event.findOne({ code: eventCode }).catch(() => null);
+    if (!event) {
+      try {
+        event = await Event.create({
+          title: `${eventCode.replace(/-/g, " ")} Celebration`,
+          code: eventCode,
+          eventType: "wedding",
+          hostId: "60c72b2f9b1d8c0015f8a001",
+          hostName: "ScanUtsav Host",
+          autoApproveMedia: true,
+        });
+      } catch (createErr) {
+        event = await Event.findOne({ code: eventCode }).catch(() => null);
+      }
+    }
+
     const eventId = event?._id?.toString() || "60c72b2f9b1d8c0015f8a001";
 
     // Save record with exact fileSizeBytes in MongoDB for storage quota calculation

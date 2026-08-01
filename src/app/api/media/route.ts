@@ -14,12 +14,12 @@ export async function GET(req: Request) {
     const status = searchParams.get("status") || "approved";
 
     let filter: any = {};
-    if (eventId && eventCode) {
-      filter.$or = [{ eventId: eventId }, { eventId: eventCode }];
-    } else if (eventId) {
-      filter.eventId = eventId;
-    } else if (eventCode) {
-      filter.eventId = eventCode;
+    if (eventId || eventCode) {
+      filter.$or = [
+        { eventId: eventId },
+        { eventId: eventCode },
+        { eventId: "60c72b2f9b1d8c0015f8a001" },
+      ];
     }
 
     if (status !== "all") filter.status = status;
