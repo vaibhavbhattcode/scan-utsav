@@ -62,7 +62,7 @@ export const StorageQuotaMeter: React.FC<StorageQuotaMeterProps> = ({
       <div className="space-y-1.5">
         <div className="flex items-center justify-between text-xs font-sans">
           <span className="text-slate-900 font-bold">{usedGB} GB Used</span>
-          <span className="text-slate-600 font-medium">{remainingGB} GB Remaining ({percentUsed}%)</span>
+          <span className="text-slate-600 font-medium">{remainingGB} GB Remaining • {percentUsed}% Used</span>
         </div>
 
         <div className="w-full bg-slate-200 h-3 rounded-full overflow-hidden border border-slate-300">

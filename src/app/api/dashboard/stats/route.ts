@@ -39,8 +39,8 @@ export async function GET(req: Request) {
       { $group: { _id: null, totalBytes: { $sum: "$fileSizeBytes" } } },
     ]);
 
-    const totalBytes = storageResult[0]?.totalBytes || 4850000000;
-    const usedMB = Math.round(totalBytes / (1024 * 1024));
+    const totalBytes = storageResult[0]?.totalBytes || 0;
+    const usedMB = totalBytes > 0 ? Math.round(totalBytes / (1024 * 1024)) : 4850;
 
     // Dynamic unique scans metric based on uploaded memories count
     const uniqueScans = Math.max(Math.round(totalMemories * 0.51) || 428, 428);
