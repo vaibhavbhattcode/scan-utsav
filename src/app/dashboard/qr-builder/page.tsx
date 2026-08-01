@@ -2,26 +2,64 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { QrCode, Download, Printer, Palette, Sparkles, Layout, ArrowLeft, Check, Building2, Sliders } from "lucide-react";
+import { QrCode, Download, Printer, ArrowLeft, Check, Building2, Sliders, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { generateQRCodeDataUrl } from "@/lib/qr-service";
 
 export default function QRBuilderStudio() {
-  const [eventTitle, setEventTitle] = useState("Ananya & Vikram's Wedding");
+  const [events, setEvents] = useState<any[]>([]);
+  const [selectedEventCode, setSelectedEventCode] = useState<string>("");
+
+  const [eventTitle, setEventTitle] = useState("ScanUtsav Celebration");
+  const [eventCode, setEventCode] = useState("demo-event");
   const [tagline, setTagline] = useState("Scan to Upload Your Photos & Wishes!");
   const [qrColor, setQrColor] = useState("#F2810C");
   const [template, setTemplate] = useState<"royal" | "golden" | "minimal">("royal");
-  const [agencyName, setAgencyName] = useState("Royal Events & Weddings Pvt Ltd");
-  const [agencyContact, setAgencyContact] = useState("www.royalevents.in • +91 98765 00000");
+  const [agencyName, setAgencyName] = useState("ScanUtsav Live Events Desk");
+  const [agencyContact, setAgencyContact] = useState("www.scanutsav.com • Support Desk");
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
+  const [loadingEvents, setLoadingEvents] = useState(true);
+
+  // Load real events from MongoDB API
+  useEffect(() => {
+    fetch("/api/events")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.events && data.events.length > 0) {
+          setEvents(data.events);
+          const firstEvt = data.events[0];
+          setSelectedEventCode(firstEvt.code);
+          setEventTitle(firstEvt.title);
+          setEventCode(firstEvt.code);
+          if (firstEvt.welcomeMessage) {
+            setTagline(firstEvt.welcomeMessage);
+          }
+        }
+      })
+      .catch((err) => console.warn("QR Builder Events Fetch Error:", err))
+      .finally(() => setLoadingEvents(false));
+  }, []);
+
+  const handleSelectEvent = (code: string) => {
+    setSelectedEventCode(code);
+    const evt = events.find((e) => e.code === code);
+    if (evt) {
+      setEventTitle(evt.title);
+      setEventCode(evt.code);
+      setTagline(evt.welcomeMessage || "Scan to Upload Your Photos & Wishes!");
+    }
+  };
 
   useEffect(() => {
-    generateQRCodeDataUrl(`https://scanutsav.com/e/ananya-vikram-2026`, {
+    const origin = typeof window !== "undefined" ? window.location.origin : "https://scanutsav.com";
+    const targetUrl = `${origin}/e/${eventCode}`;
+
+    generateQRCodeDataUrl(targetUrl, {
       colorDark: qrColor,
       colorLight: "#ffffff",
       width: 400
     }).then(url => setQrDataUrl(url));
-  }, [qrColor, eventTitle]);
+  }, [qrColor, eventTitle, eventCode]);
 
   const handleDownloadPNG = () => {
     if (!qrDataUrl) return;
@@ -75,6 +113,32 @@ export default function QRBuilderStudio() {
             </span>
           </div>
 
+          {/* Real MongoDB Event Selector */}
+          <div className="space-y-1.5 p-4 rounded-2xl bg-amber-50/50 border border-amber-200">
+            <label className="block text-xs font-extrabold text-amber-900 flex items-center gap-1.5 font-sans">
+              <Sparkles className="w-3.5 h-3.5 text-[#F2810C]" /> Select Celebration Event (MongoDB Live)
+            </label>
+            {loadingEvents ? (
+              <div className="h-10 bg-slate-200 animate-pulse rounded-xl" />
+            ) : events.length > 0 ? (
+              <select
+                value={selectedEventCode}
+                onChange={(e) => handleSelectEvent(e.target.value)}
+                className="w-full bg-white border border-amber-300 rounded-xl p-2.5 text-xs text-slate-900 font-bold focus:outline-none focus:border-[#F2810C] shadow-sm"
+              >
+                {events.map((evt) => (
+                  <option key={evt.code} value={evt.code}>
+                    {evt.title} ({evt.code})
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <p className="text-xs text-slate-600 font-medium italic">
+                No events found. Create an event in the dashboard to generate custom QR standees.
+              </p>
+            )}
+          </div>
+
           {/* Template Style Selector */}
           <div className="space-y-2">
             <label className="block text-xs font-bold text-slate-800">Poster Theme Style</label>
@@ -82,30 +146,33 @@ export default function QRBuilderStudio() {
               <button
                 type="button"
                 onClick={() => setTemplate("royal")}
-                className={`py-2 px-3 rounded-xl text-xs font-bold transition-all border ${template === "royal"
+                className={`py-2 px-3 rounded-xl text-xs font-bold transition-all border ${
+                  template === "royal"
                     ? "bg-slate-900 text-white border-slate-900 shadow-md"
                     : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
-                  }`}
+                }`}
               >
                 Royal Dark
               </button>
               <button
                 type="button"
                 onClick={() => setTemplate("golden")}
-                className={`py-2 px-3 rounded-xl text-xs font-bold transition-all border ${template === "golden"
+                className={`py-2 px-3 rounded-xl text-xs font-bold transition-all border ${
+                  template === "golden"
                     ? "bg-amber-700 text-white border-amber-800 shadow-md"
                     : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
-                  }`}
+                }`}
               >
                 Gold Luxe
               </button>
               <button
                 type="button"
                 onClick={() => setTemplate("minimal")}
-                className={`py-2 px-3 rounded-xl text-xs font-bold transition-all border ${template === "minimal"
+                className={`py-2 px-3 rounded-xl text-xs font-bold transition-all border ${
+                  template === "minimal"
                     ? "bg-[#F2810C] text-white border-[#F2810C] shadow-md"
                     : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
-                  }`}
+                }`}
               >
                 Minimal White
               </button>
@@ -152,8 +219,9 @@ export default function QRBuilderStudio() {
                   type="button"
                   title={c.name}
                   onClick={() => setQrColor(c.hex)}
-                  className={`w-9 h-9 rounded-full flex items-center justify-center transition-all ${qrColor === c.hex ? "scale-110 ring-4 ring-amber-300 shadow-md" : "hover:scale-105 opacity-90"
-                    }`}
+                  className={`w-9 h-9 rounded-full flex items-center justify-center transition-all ${
+                    qrColor === c.hex ? "scale-110 ring-4 ring-amber-300 shadow-md" : "hover:scale-105 opacity-90"
+                  }`}
                   style={{ backgroundColor: c.hex }}
                 >
                   {qrColor === c.hex && <Check className="w-4 h-4 text-white drop-shadow-md" />}
@@ -196,12 +264,13 @@ export default function QRBuilderStudio() {
         <div className="lg:col-span-7 flex justify-center w-full">
           <div
             id="printable-poster-area"
-            className={`w-full max-w-md p-8 rounded-3xl shadow-2xl text-center space-y-6 transition-all duration-300 ${template === "royal"
+            className={`w-full max-w-md p-8 rounded-3xl shadow-2xl text-center space-y-6 transition-all duration-300 ${
+              template === "royal"
                 ? "bg-slate-950 text-white border-4 border-amber-500/40 shadow-glow-marigold"
                 : template === "golden"
-                  ? "bg-gradient-to-b from-amber-950 via-slate-950 to-black text-white border-4 border-amber-500"
-                  : "bg-white text-slate-900 border-4 border-slate-300 shadow-xl"
-              }`}
+                ? "bg-gradient-to-b from-amber-950 via-slate-950 to-black text-white border-4 border-amber-500"
+                : "bg-white text-slate-900 border-4 border-slate-300 shadow-xl"
+            }`}
           >
             <div className="space-y-1">
               <span className={`text-[10px] font-extrabold uppercase tracking-widest ${template === "minimal" ? "text-[#F2810C]" : "text-amber-400"}`}>
