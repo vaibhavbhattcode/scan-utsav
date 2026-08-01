@@ -4,7 +4,8 @@ import React, { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import {
   Camera, Sparkles, UploadCloud, Heart, ShieldCheck, Search,
-  UserCheck, X, RefreshCw, FolderUp, ExternalLink, CheckCircle2, Mic
+  UserCheck, X, RefreshCw, FolderUp, ExternalLink, CheckCircle2, Mic,
+  ChevronLeft, ChevronRight, Download, Share2
 } from "lucide-react";
 import { useToast } from "@/components/ui/Toast";
 
@@ -53,6 +54,30 @@ export default function GuestEventMemoryPage() {
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [passcode, setPasscode] = useState("");
   const [verifyingPass, setVerifyingPass] = useState(false);
+
+  // Full-Screen Image Lightbox Preview State
+  const [selectedMedia, setSelectedMedia] = useState<MediaItem | null>(null);
+  const activeGalleryList = faceMatches !== null
+    ? mediaList.filter((m) => faceMatches.some((match) => match.mediaId === m._id))
+    : mediaList;  const currentMediaIndex = selectedMedia
+    ? activeGalleryList.findIndex((m) => m._id === selectedMedia._id)
+    : -1;
+
+  const handlePrevMedia = () => {
+    if (currentMediaIndex > 0) {
+      setSelectedMedia(activeGalleryList[currentMediaIndex - 1]);
+    } else if (activeGalleryList.length > 0) {
+      setSelectedMedia(activeGalleryList[activeGalleryList.length - 1]);
+    }
+  };
+
+  const handleNextMedia = () => {
+    if (currentMediaIndex >= 0 && currentMediaIndex < activeGalleryList.length - 1) {
+      setSelectedMedia(activeGalleryList[currentMediaIndex + 1]);
+    } else if (activeGalleryList.length > 0) {
+      setSelectedMedia(activeGalleryList[0]);
+    }
+  };
 
   useEffect(() => {
     fetch(`/api/events?code=${eventCode}`)
@@ -211,9 +236,7 @@ export default function GuestEventMemoryPage() {
     }
   };
 
-  const activeGalleryList = faceMatches !== null
-    ? mediaList.filter((m) => faceMatches.some((match) => match.mediaId === m._id))
-    : mediaList;
+
 
   if (eventData?.isPasswordProtected && !isUnlocked) {
     return (
@@ -343,7 +366,11 @@ export default function GuestEventMemoryPage() {
             {activeGalleryList.map((m) => {
               const matchInfo = faceMatches?.find((f) => f.mediaId === m._id);
               return (
-                <div key={m._id} className="rounded-2xl overflow-hidden border border-slate-200 group relative shadow-md bg-white">
+                <div
+                  key={m._id}
+                  onClick={() => setSelectedMedia(m)}
+                  className="rounded-2xl overflow-hidden border border-slate-200 group relative shadow-md bg-white cursor-pointer hover:shadow-xl transition-all duration-200"
+                >
                   {m.mediaType === "video" ? (
                     <video src={m.mediaUrl} controls className="w-full h-48 object-cover" />
                   ) : (
@@ -504,6 +531,95 @@ export default function GuestEventMemoryPage() {
                   </button>
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+      {selectedMedia && (
+        <div className="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-lg flex items-center justify-center p-2 sm:p-6 select-none animate-in fade-in duration-200">
+          {/* Close Button */}
+          <button
+            onClick={() => setSelectedMedia(null)}
+            className="absolute top-4 right-4 z-50 p-2.5 rounded-full bg-black/60 hover:bg-black/80 text-white transition-colors border border-white/20"
+          >
+            <X className="w-6 h-6" />
+          </button>
+
+          {/* Previous Media Arrow */}
+          <button
+            onClick={handlePrevMedia}
+            className="absolute left-3 sm:left-6 z-40 p-3 rounded-full bg-black/60 hover:bg-black/80 text-white transition-colors border border-white/20"
+          >
+            <ChevronLeft className="w-6 h-6" />
+          </button>
+
+          {/* Next Media Arrow */}
+          <button
+            onClick={handleNextMedia}
+            className="absolute right-3 sm:right-6 z-40 p-3 rounded-full bg-black/60 hover:bg-black/80 text-white transition-colors border border-white/20"
+          >
+            <ChevronRight className="w-6 h-6" />
+          </button>
+
+          {/* Main Media Preview Container */}
+          <div className="relative max-w-4xl max-h-[85vh] w-full flex flex-col items-center justify-center">
+            {selectedMedia.mediaType === "video" ? (
+              <video
+                src={selectedMedia.mediaUrl}
+                controls
+                autoPlay
+                className="max-h-[75vh] w-auto max-w-full rounded-2xl shadow-2xl object-contain border border-slate-800"
+              />
+            ) : (
+              <img
+                src={selectedMedia.mediaUrl}
+                alt={selectedMedia.uploaderName}
+                className="max-h-[75vh] w-auto max-w-full rounded-2xl shadow-2xl object-contain border border-slate-800"
+              />
+            )}
+
+            {/* Media Information Bar */}
+            <div className="mt-4 w-full max-w-xl bg-slate-900/90 border border-slate-800 rounded-2xl p-4 flex items-center justify-between gap-4 text-white shadow-2xl">
+              <div className="min-w-0 flex-1 space-y-0.5">
+                <div className="flex items-center gap-2">
+                  <span className="font-extrabold text-sm text-white truncate">{selectedMedia.uploaderName}</span>
+                  <span className="text-[10px] bg-[#F2810C]/20 text-[#F2810C] px-2 py-0.5 rounded-full font-bold">Event Guest</span>
+                </div>
+                {selectedMedia.wishMessage && (
+                  <p className="text-xs text-slate-300 italic truncate">"{selectedMedia.wishMessage}"</p>
+                )}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex items-center gap-2 shrink-0">
+                <a
+                  href={selectedMedia.mediaUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  download
+                  className="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white transition-colors border border-slate-700 flex items-center gap-1.5 text-xs font-bold"
+                >
+                  <Download className="w-4 h-4" />
+                  <span className="hidden sm:inline">Save</span>
+                </a>
+                <button
+                  onClick={() => {
+                    if (navigator.share) {
+                      navigator.share({
+                        title: `${selectedMedia.uploaderName}'s Memory`,
+                        url: selectedMedia.mediaUrl,
+                      });
+                    } else {
+                      navigator.clipboard.writeText(selectedMedia.mediaUrl);
+                      showToast("Image link copied to clipboard!", "success");
+                    }
+                  }}
+                  className="p-2.5 rounded-xl bg-[#F2810C] hover:bg-[#D97706] text-white transition-colors shadow-md flex items-center gap-1.5 text-xs font-bold"
+                >
+                  <Share2 className="w-4 h-4" />
+                  <span className="hidden sm:inline">Share</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
