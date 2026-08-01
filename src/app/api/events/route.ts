@@ -65,39 +65,7 @@ export async function GET(req: Request) {
       events = await Event.find(filter).select("-password").sort({ createdAt: -1 }).catch(() => []);
     }
 
-    if (!events || events.length === 0) {
-      events = [
-        {
-          _id: "e1",
-          title: "Ananya & Vikram's Wedding",
-          code: "ananya-vikram-2026",
-          eventType: "wedding",
-          mediaCount: 248,
-          status: "Live",
-          coverImage: "https://images.unsplash.com/photo-1519741497674-611481863552?w=500",
-        },
-        {
-          _id: "e2",
-          title: "Maha Ganesh Chaturthi Pandal",
-          code: "ganesh-utsav-2026",
-          eventType: "ganesh-chaturthi",
-          mediaCount: 412,
-          status: "Live",
-          coverImage: "https://images.unsplash.com/photo-1605379399642-870262d3d051?w=500",
-        },
-        {
-          _id: "e3",
-          title: "Rohan's 30th Birthday Bash",
-          code: "rohan-birthday-30",
-          eventType: "birthday",
-          mediaCount: 184,
-          status: "Upcoming",
-          coverImage: "https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=500",
-        },
-      ];
-    }
-
-    return NextResponse.json({ success: true, events });
+    return NextResponse.json({ success: true, events: events || [] });
   } catch (error: any) {
     console.error("GET Events Error:", error);
     return NextResponse.json({ success: true, events: [] });

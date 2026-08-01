@@ -20,6 +20,7 @@ interface HostEventItem {
 export default function HostEventsPage() {
   const { showToast } = useToast();
   const [events, setEvents] = useState<HostEventItem[]>([]);
+  const [stats, setStats] = useState({ usedMB: 0, userPlan: "royal" });
 
   // Create Event Modal State
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -43,7 +44,7 @@ export default function HostEventsPage() {
     };
   }, [showCreateModal]);
 
-  // Load events from MongoDB API on mount
+  // Load events and stats from MongoDB API on mount
   useEffect(() => {
     fetch("/api/events")
       .then((res) => res.json())
@@ -62,6 +63,15 @@ export default function HostEventsPage() {
         }
       })
       .catch((err) => console.warn("Events load warning:", err));
+
+    fetch("/api/dashboard/stats")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.stats) {
+          setStats({ usedMB: data.stats.usedMB || 0, userPlan: data.stats.userPlan || "royal" });
+        }
+      })
+      .catch((err) => console.warn("Stats load warning:", err));
   }, []);
 
   const copyGuestLink = (code: string) => {
@@ -150,7 +160,7 @@ export default function HostEventsPage() {
       </div>
 
       {/* Storage Quota Progress Meter */}
-      <StorageQuotaMeter usedMB={4850} plan="royal" />
+      <StorageQuotaMeter usedMB={stats.usedMB} plan={stats.userPlan} />
 
       {/* Events Grid */}
       {events.length === 0 ? (
