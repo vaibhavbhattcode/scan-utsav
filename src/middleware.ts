@@ -43,7 +43,7 @@ export async function middleware(request: NextRequest) {
       "/api/auth/google",
       "/api/media",
       "/api/contact",
-      "/api/upload/presign",
+      "/api/upload",
       "/api/events/verify-password",
       "/api/payments/razorpay",
       "/api/payments/gift",
@@ -56,7 +56,8 @@ export async function middleware(request: NextRequest) {
         request.headers.get("x-csrf-token") ||
         request.headers.get("x-scanutsav-request") ||
         request.headers.get("authorization") ||
-        request.headers.get("content-type")?.includes("application/json");
+        request.headers.get("content-type")?.includes("application/json") ||
+        request.headers.get("content-type")?.includes("multipart/form-data");
 
       if (!csrfHeader) {
         return NextResponse.json({ error: "CSRF token missing or invalid" }, { status: 403 });
