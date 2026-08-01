@@ -55,11 +55,15 @@ export default function GuestEventMemoryPage() {
   const [passcode, setPasscode] = useState("");
   const [verifyingPass, setVerifyingPass] = useState(false);
 
-  // Full-Screen Image Lightbox Preview State
+  // Full-Screen Lightbox & Drag-and-Drop States
   const [selectedMedia, setSelectedMedia] = useState<MediaItem | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+
   const activeGalleryList = faceMatches !== null
     ? mediaList.filter((m) => faceMatches.some((match) => match.mediaId === m._id))
-    : mediaList;  const currentMediaIndex = selectedMedia
+    : mediaList;
+
+  const currentMediaIndex = selectedMedia
     ? activeGalleryList.findIndex((m) => m._id === selectedMedia._id)
     : -1;
 
@@ -145,8 +149,7 @@ export default function GuestEventMemoryPage() {
       .finally(() => setLoading(false));
   };
 
-  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  const processAndUploadFile = async (file: File) => {
     if (!file) return;
 
     if (!dpdpConsent) {
@@ -201,6 +204,34 @@ export default function GuestEventMemoryPage() {
     } finally {
       setUploading(false);
       setUploadProgress(null);
+    }
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) processAndUploadFile(file);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!isDragging) setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.currentTarget.contains(e.relatedTarget as Node)) return;
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    const droppedFile = e.dataTransfer.files?.[0];
+    if (droppedFile) {
+      processAndUploadFile(droppedFile);
     }
   };
 
@@ -279,7 +310,13 @@ export default function GuestEventMemoryPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FAF9F6] text-slate-900 font-sans" style={{ paddingBottom: "180px" }}>
+    <div
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+      className="min-h-screen bg-[#FAF9F6] text-slate-900 font-sans relative"
+      style={{ paddingBottom: "180px" }}
+    >
       {/* Event Header Banner */}
       <div className="relative py-10 px-6 bg-gradient-to-b from-amber-50 via-white to-[#FAF9F6] text-center space-y-4 border-b border-slate-200">
         <div className="flex items-center justify-center gap-2 flex-wrap">
@@ -379,7 +416,9 @@ export default function GuestEventMemoryPage() {
                       alt={m.uploaderName}
                       loading="lazy"
                       decoding="async"
-                      className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+                      draggable={false}
+                      onDragStart={(e) => e.preventDefault()}
+                      className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300 pointer-events-none"
                     />
                   )}
                   {matchInfo && (
@@ -402,6 +441,19 @@ export default function GuestEventMemoryPage() {
           </div>
         )}
       </div>
+
+      {/* ===== DRAG & DROP VISUAL OVERLAY ===== */}
+      {isDragging && (
+        <div className="fixed inset-0 z-50 bg-amber-500/90 backdrop-blur-md flex flex-col items-center justify-center p-6 text-white text-center space-y-4 pointer-events-none animate-in fade-in duration-150">
+          <div className="w-24 h-24 rounded-full bg-white/20 flex items-center justify-center border-4 border-dashed border-white animate-bounce">
+            <UploadCloud className="w-12 h-12 text-white" />
+          </div>
+          <h2 className="text-2xl sm:text-3xl font-black font-display">Drop Your Photos or Videos Here!</h2>
+          <p className="text-sm font-bold text-amber-100 max-w-sm">
+            Release your file anywhere to instantly upload your memory to the live event album! 📸
+          </p>
+        </div>
+      )}
 
       {/* ===== FIXED BOTTOM UPLOAD BAR ===== */}
       <div className="fixed bottom-0 left-0 right-0 z-50 print:hidden">
