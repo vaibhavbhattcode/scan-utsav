@@ -118,57 +118,32 @@ export default function GuestEventMemoryPage() {
       return;
     }
 
-    const eventId = eventData?._id;
-    if (!eventId) { showToast("Invalid event session.", "error"); return; }
-
     setUploading(true);
-    setUploadProgress(10);
+    setUploadProgress(20);
 
     try {
-      const presignRes = await fetch("/api/upload/presign", {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("eventCode", eventData?.code || eventCode);
+      formData.append("uploaderName", guestName || "Guest");
+      formData.append("wishMessage", wishMessage || "");
+
+      setUploadProgress(50);
+
+      const res = await fetch("/api/upload/cloudinary", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          eventCode: eventData?.code || eventCode,
-          fileName: file.name,
-          contentType: file.type,
-          fileSize: file.size,
-        }),
+        body: formData,
       });
 
-      const presignData = await presignRes.json();
-      if (!presignRes.ok || !presignData.presignedUrl) throw new Error(presignData.error || "Failed to get storage presigned URL");
-
-      const { presignedUrl, cdnUrl } = presignData;
-      setUploadProgress(30);
-
-      await new Promise((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-        xhr.open("PUT", presignedUrl, true);
-        xhr.setRequestHeader("Content-Type", file.type);
-        xhr.upload.onprogress = (event) => {
-          if (event.lengthComputable) setUploadProgress(Math.round(30 + (event.loaded / event.total) * 60));
-        };
-        xhr.onload = () => (xhr.status >= 200 && xhr.status < 300 ? resolve(true) : reject(new Error(`HTTP ${xhr.status}`)));
-        xhr.onerror = () => reject(new Error("Network error"));
-        xhr.send(file);
-      });
-
-      await fetch("/api/media", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          eventId, mediaUrl: cdnUrl,
-          mediaType: file.type.startsWith("video/") ? "video" : "image",
-          uploaderName: guestName || "Guest",
-          wishMessage: wishMessage || "",
-        }),
-      });
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error(data.error || "Cloudinary upload failed");
 
       setUploadProgress(100);
       showToast("Your memory is saved in the event album! 🎉", "success");
       setWishMessage("");
-      fetchMedia(eventId);
+      if (eventData?._id) {
+        fetchMedia(eventData._id);
+      }
     } catch (err: any) {
       showToast(err.message || "Upload failed.", "error");
     } finally {
