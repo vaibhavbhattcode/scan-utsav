@@ -8,11 +8,11 @@ import { StorageQuotaMeter } from "@/components/dashboard/StorageQuotaMeter";
 
 export default function HostDashboardOverview() {
   const [stats, setStats] = useState({
-    totalEvents: 3,
-    totalMemories: 844,
+    totalEvents: 0,
+    totalMemories: 0,
     moderationQueue: 0,
-    usedMB: 4850,
-    uniqueScans: 428,
+    usedMB: 0,
+    uniqueScans: 0,
     userPlan: "royal",
   });
 
