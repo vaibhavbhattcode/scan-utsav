@@ -10,10 +10,18 @@ export async function GET(req: Request) {
     await connectDB().catch(() => null);
     const { searchParams } = new URL(req.url);
     const eventId = searchParams.get("eventId");
+    const eventCode = searchParams.get("eventCode");
     const status = searchParams.get("status") || "approved";
 
     let filter: any = {};
-    if (eventId) filter.eventId = eventId;
+    if (eventId && eventCode) {
+      filter.$or = [{ eventId: eventId }, { eventId: eventCode }];
+    } else if (eventId) {
+      filter.eventId = eventId;
+    } else if (eventCode) {
+      filter.eventId = eventCode;
+    }
+
     if (status !== "all") filter.status = status;
 
     let mediaList: any[] = [];

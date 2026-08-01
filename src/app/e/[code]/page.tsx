@@ -100,11 +100,11 @@ export default function GuestEventMemoryPage() {
     }
   };
 
-  const fetchMedia = (eventId: string) => {
-    fetch(`/api/media?eventId=${eventId}`)
+  const fetchMedia = (idOrCode: string) => {
+    fetch(`/api/media?eventId=${idOrCode}&eventCode=${eventCode}`)
       .then((res) => res.json())
       .then((data) => {
-        if (data.success) setMediaList(data.media || []);
+        if (data.success && data.media) setMediaList(data.media || []);
       })
       .finally(() => setLoading(false));
   };
@@ -138,12 +138,14 @@ export default function GuestEventMemoryPage() {
       const data = await res.json();
       if (!res.ok || !data.success) throw new Error(data.error || "Cloudinary upload failed");
 
+      if (data.media) {
+        setMediaList((prev) => [data.media, ...prev]);
+      }
+
       setUploadProgress(100);
       showToast("Your memory is saved in the event album! 🎉", "success");
       setWishMessage("");
-      if (eventData?._id) {
-        fetchMedia(eventData._id);
-      }
+      fetchMedia(eventData?._id || eventCode);
     } catch (err: any) {
       showToast(err.message || "Upload failed.", "error");
     } finally {
