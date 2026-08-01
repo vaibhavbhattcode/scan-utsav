@@ -3,7 +3,6 @@ import mongoose from "mongoose";
 import { connectDB } from "@/lib/db";
 import Media from "@/models/Media";
 import Event from "@/models/Event";
-import User from "@/models/User";
 import { matchSelfieToMediaList } from "@/lib/face-recognition";
 
 export async function POST(req: Request) {
@@ -27,30 +26,34 @@ export async function POST(req: Request) {
       }
     }
 
-    // Fetch approved media items for this event safely
+    // Fetch approved media items from MongoDB
     const eventSearchKeys = [eventId];
     if (event) {
       if (event._id) eventSearchKeys.push(event._id.toString());
       if (event.code) eventSearchKeys.push(event.code);
     }
 
-    let mediaItems: any[] = [];
+    let dbMediaList: any[] = [];
     if (mongoose.connection.readyState === 1) {
-      mediaItems = await Media.find({
+      dbMediaList = await Media.find({
         eventId: { $in: eventSearchKeys },
         status: "approved",
       }).lean().catch(() => []);
     }
 
-    // Fallback: If DB query returned no items, fetch all approved media
-    if (!mediaItems || mediaItems.length === 0) {
-      if (mongoose.connection.readyState === 1) {
-        mediaItems = await Media.find({ status: "approved" }).lean().catch(() => []);
+    // Combine with Global Server Memory Store
+    const memoryStore: any[] = (global as any)._scanutsav_media_store || [];
+    const memoryMatches = memoryStore.filter((m) => m.status === "approved");
+
+    const combined: any[] = [...(dbMediaList || [])];
+    for (const mem of memoryMatches) {
+      if (!combined.some((c) => c._id?.toString() === mem._id?.toString() || c.mediaUrl === mem.mediaUrl)) {
+        combined.unshift(mem);
       }
     }
 
     // Filter image media only for face matching
-    const imageItems = (mediaItems || []).filter((m: any) => m.mediaType === "image" || !m.mediaType);
+    const imageItems = combined.filter((m: any) => m.mediaType === "image" || !m.mediaType);
 
     // Perform AI face matching
     const matches = await matchSelfieToMediaList(selfieData, imageItems as any);
@@ -64,11 +67,15 @@ export async function POST(req: Request) {
 
   } catch (error: any) {
     console.error("AI Face Search API Error:", error);
+    const memoryStore: any[] = (global as any)._scanutsav_media_store || [];
+    const imageItems = memoryStore.filter((m: any) => m.mediaType === "image" || !m.mediaType);
+    const matches = await matchSelfieToMediaList((await req.json().catch(() => ({}))).selfieData || "", imageItems as any).catch(() => []);
+
     return NextResponse.json({
       success: true,
-      matches: [],
-      count: 0,
-      totalScanned: 0,
+      matches: matches || [],
+      count: matches?.length || 0,
+      totalScanned: imageItems.length,
     }, { status: 200 });
   }
 }

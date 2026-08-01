@@ -13,25 +13,43 @@ export async function GET(req: Request) {
     const eventCode = searchParams.get("eventCode");
     const status = searchParams.get("status") || "approved";
 
-    let filter: any = {};
-    if (eventId || eventCode) {
-      filter.$or = [
-        { eventId: eventId },
-        { eventId: eventCode },
-      ];
+    // 1. Fetch from MongoDB
+    let dbMediaList: any[] = [];
+    try {
+      let filter: any = {};
+      if (eventId || eventCode) {
+        filter.$or = [
+          { eventId: eventId },
+          { eventId: eventCode },
+        ];
+      }
+      if (status !== "all") filter.status = status;
+      dbMediaList = await Media.find(filter).sort({ createdAt: -1 }).lean().catch(() => []);
+    } catch (e) {
+      dbMediaList = [];
     }
 
-    if (status !== "all") filter.status = status;
+    // 2. Fetch from Global Memory Cache
+    const memoryStore: any[] = (global as any)._scanutsav_media_store || [];
+    const memoryMatches = memoryStore.filter((m) => {
+      const matchEvent = !eventId && !eventCode ? true : (m.eventId === eventId || m.eventId === eventCode || m.eventCode === eventCode);
+      const matchStatus = status === "all" ? true : m.status === status;
+      return matchEvent && matchStatus;
+    });
 
-    let mediaList: any[] = [];
-    if (mongoose.connection.readyState === 1) {
-      mediaList = await Media.find(filter).sort({ createdAt: -1 }).catch(() => []);
+    // 3. Combine MongoDB + Memory Store cleanly without duplicates
+    const combined: any[] = [...(dbMediaList || [])];
+    for (const mem of memoryMatches) {
+      if (!combined.some((c) => c._id?.toString() === mem._id?.toString() || c.mediaUrl === mem.mediaUrl)) {
+        combined.unshift(mem);
+      }
     }
 
-    return NextResponse.json({ success: true, media: mediaList || [] });
+    return NextResponse.json({ success: true, media: combined });
   } catch (error: any) {
     console.error("GET Media Error:", error);
-    return NextResponse.json({ success: true, media: [] }, { status: 200 });
+    const memoryStore: any[] = (global as any)._scanutsav_media_store || [];
+    return NextResponse.json({ success: true, media: memoryStore });
   }
 }
 
@@ -52,30 +70,25 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "eventId and mediaUrl are required" }, { status: 400 });
     }
 
-    let newMedia = null;
+    const newMedia = {
+      _id: new mongoose.Types.ObjectId().toString(),
+      eventId,
+      mediaUrl,
+      mediaType: mediaType || "image",
+      uploaderName: uploaderName || "Guest",
+      wishMessage: wishMessage || "",
+      status: "approved",
+      createdAt: new Date().toISOString(),
+    };
+
     if (mongoose.connection.readyState === 1) {
-      newMedia = await Media.create({
-        eventId,
-        mediaUrl,
-        mediaType: mediaType || "image",
-        uploaderName: uploaderName || "Guest",
-        wishMessage: wishMessage || "",
-        status: "approved",
-      }).catch(() => null);
+      await Media.create(newMedia).catch(() => null);
     }
 
-    if (!newMedia) {
-      newMedia = {
-        _id: new mongoose.Types.ObjectId().toString(),
-        eventId,
-        mediaUrl,
-        mediaType: mediaType || "image",
-        uploaderName: uploaderName || "Guest",
-        wishMessage: wishMessage || "",
-        status: "approved",
-        createdAt: new Date().toISOString(),
-      };
+    if (!(global as any)._scanutsav_media_store) {
+      (global as any)._scanutsav_media_store = [];
     }
+    (global as any)._scanutsav_media_store.unshift(newMedia);
 
     return NextResponse.json({ success: true, media: newMedia }, { status: 201 });
   } catch (error: any) {
@@ -106,12 +119,15 @@ export async function PATCH(req: Request) {
       return NextResponse.json({ error: "mediaId and status required" }, { status: 400 });
     }
 
-    let updated = null;
     if (mongoose.connection.readyState === 1) {
-      updated = await Media.findByIdAndUpdate(mediaId, { status }, { new: true }).catch(() => null);
+      await Media.findByIdAndUpdate(mediaId, { status }, { new: true }).catch(() => null);
     }
 
-    return NextResponse.json({ success: true, media: updated });
+    const memoryStore: any[] = (global as any)._scanutsav_media_store || [];
+    const target = memoryStore.find((m) => m._id?.toString() === mediaId);
+    if (target) target.status = status;
+
+    return NextResponse.json({ success: true, media: { _id: mediaId, status } });
   } catch (error: any) {
     return NextResponse.json({ error: error.message || "Failed to moderate media" }, { status: 500 });
   }

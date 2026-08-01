@@ -28,10 +28,11 @@ export async function POST(req: Request) {
       isVideo ? "video" : "image"
     );
 
-    // Resolve or auto-create event in MongoDB so eventId is 100% dynamic & consistent
-    let event = await Event.findOne({ code: eventCode }).catch(() => null);
-    if (!event && mongoose.connection.readyState === 1) {
-      try {
+    // Resolve or auto-create event in MongoDB
+    let event = null;
+    try {
+      event = await Event.findOne({ code: eventCode });
+      if (!event) {
         const dynamicHostId = new mongoose.Types.ObjectId().toString();
         event = await Event.create({
           title: `${eventCode.replace(/-/g, " ")} Celebration`,
@@ -41,14 +42,14 @@ export async function POST(req: Request) {
           hostName: "ScanUtsav Host",
           autoApproveMedia: true,
         });
-      } catch (createErr) {
-        event = await Event.findOne({ code: eventCode }).catch(() => null);
       }
+    } catch (e) {
+      event = null;
     }
 
     const eventId = event?._id?.toString() || eventCode;
 
-    // Save record with exact fileSizeBytes in MongoDB for storage quota calculation
+    // 1. Save to MongoDB Media collection
     let mediaDoc: any = null;
     try {
       mediaDoc = await Media.create({
@@ -73,9 +74,29 @@ export async function POST(req: Request) {
       };
     }
 
+    // 2. Save to Global Memory Store so refresh never loses uploaded photos
+    if (!(global as any)._scanutsav_media_store) {
+      (global as any)._scanutsav_media_store = [];
+    }
+
+    const cacheRecord = {
+      _id: mediaDoc?._id?.toString() || new mongoose.Types.ObjectId().toString(),
+      eventId,
+      eventCode,
+      mediaUrl: cloudRes.secureUrl,
+      mediaType: isVideo ? "video" : "image",
+      fileSizeBytes: cloudRes.bytes || file.size || 2450000,
+      uploaderName,
+      wishMessage,
+      status: "approved",
+      createdAt: new Date().toISOString(),
+    };
+
+    (global as any)._scanutsav_media_store.unshift(cacheRecord);
+
     return NextResponse.json({
       success: true,
-      media: mediaDoc,
+      media: cacheRecord,
       cdnUrl: cloudRes.secureUrl,
       fileSizeBytes: cloudRes.bytes || file.size,
     }, { status: 201 });
