@@ -24,6 +24,7 @@ export async function GET(req: Request) {
           "ganesh-utsav-2026": "Maha Ganesh Chaturthi Pandal",
         };
         const title = defaultTitles[code] || `${code.replace(/-/g, " ")} Celebration`;
+        const dynamicId = new mongoose.Types.ObjectId().toString();
 
         if (mongoose.connection.readyState === 1) {
           try {
@@ -31,7 +32,7 @@ export async function GET(req: Request) {
               title,
               code,
               eventType: code.includes("birthday") ? "birthday" : "wedding",
-              hostId: "60c72b2f9b1d8c0015f8a001",
+              hostId: dynamicId,
               hostName: "ScanUtsav Host",
               autoApproveMedia: true,
             });
@@ -42,11 +43,11 @@ export async function GET(req: Request) {
 
         if (!event) {
           event = {
-            _id: "60c72b2f9b1d8c0015f8a001",
+            _id: dynamicId,
             title,
             code,
             eventType: code.includes("birthday") ? "birthday" : "wedding",
-            hostId: "60c72b2f9b1d8c0015f8a001",
+            hostId: dynamicId,
             hostName: "ScanUtsav Host",
             autoApproveMedia: true,
           };
@@ -56,9 +57,9 @@ export async function GET(req: Request) {
       return NextResponse.json({ success: true, event });
     }
 
-    // Unfiltered event list
+    // Unfiltered event list for authenticated host
     const auth = requireAuth(req, ["host", "super_admin"]);
-    const filter = auth.user?.role === "super_admin" ? {} : { hostId: auth.user?.userId || "60c72b2f9b1d8c0015f8a001" };
+    const filter = auth.user?.role === "super_admin" ? {} : (auth.user?.userId ? { hostId: auth.user.userId } : {});
 
     let events: any[] = [];
     if (mongoose.connection.readyState === 1) {
@@ -74,7 +75,7 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   const auth = requireAuth(req, ["host", "super_admin"]);
-  const userId = auth.user?.userId || "60c72b2f9b1d8c0015f8a001";
+  const userId = auth.user?.userId || new mongoose.Types.ObjectId().toString();
 
   try {
     await connectDB().catch(() => null);
@@ -100,7 +101,7 @@ export async function POST(req: Request) {
 
     if (!newEvent) {
       newEvent = {
-        _id: `evt_${Date.now()}`,
+        _id: new mongoose.Types.ObjectId().toString(),
         title,
         code,
         eventType: eventType || "wedding",

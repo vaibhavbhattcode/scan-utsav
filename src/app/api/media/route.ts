@@ -18,7 +18,6 @@ export async function GET(req: Request) {
       filter.$or = [
         { eventId: eventId },
         { eventId: eventCode },
-        { eventId: "60c72b2f9b1d8c0015f8a001" },
       ];
     }
 
@@ -67,7 +66,7 @@ export async function POST(req: Request) {
 
     if (!newMedia) {
       newMedia = {
-        _id: `m_${Date.now()}`,
+        _id: new mongoose.Types.ObjectId().toString(),
         eventId,
         mediaUrl,
         mediaType: mediaType || "image",
@@ -84,7 +83,7 @@ export async function POST(req: Request) {
     return NextResponse.json({
       success: true,
       media: {
-        _id: `m_${Date.now()}`,
+        _id: new mongoose.Types.ObjectId().toString(),
         mediaUrl: "https://images.unsplash.com/photo-1519741497674-611481863552?w=800",
         mediaType: "image",
         uploaderName: "Guest",

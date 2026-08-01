@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import mongoose from "mongoose";
 import { uploadToCloudinary } from "@/lib/cloudinary";
 import { connectDB } from "@/lib/db";
 import Event from "@/models/Event";
@@ -27,15 +28,16 @@ export async function POST(req: Request) {
       isVideo ? "video" : "image"
     );
 
-    // Resolve or auto-create event in MongoDB so eventId is 100% consistent across APIs
+    // Resolve or auto-create event in MongoDB so eventId is 100% dynamic & consistent
     let event = await Event.findOne({ code: eventCode }).catch(() => null);
-    if (!event) {
+    if (!event && mongoose.connection.readyState === 1) {
       try {
+        const dynamicHostId = new mongoose.Types.ObjectId().toString();
         event = await Event.create({
           title: `${eventCode.replace(/-/g, " ")} Celebration`,
           code: eventCode,
           eventType: "wedding",
-          hostId: "60c72b2f9b1d8c0015f8a001",
+          hostId: dynamicHostId,
           hostName: "ScanUtsav Host",
           autoApproveMedia: true,
         });
@@ -44,7 +46,7 @@ export async function POST(req: Request) {
       }
     }
 
-    const eventId = event?._id?.toString() || "60c72b2f9b1d8c0015f8a001";
+    const eventId = event?._id?.toString() || eventCode;
 
     // Save record with exact fileSizeBytes in MongoDB for storage quota calculation
     let mediaDoc: any = null;
@@ -60,7 +62,7 @@ export async function POST(req: Request) {
       });
     } catch (dbErr) {
       mediaDoc = {
-        _id: `m_${Date.now()}`,
+        _id: new mongoose.Types.ObjectId().toString(),
         eventId,
         mediaUrl: cloudRes.secureUrl,
         mediaType: isVideo ? "video" : "image",
@@ -84,8 +86,8 @@ export async function POST(req: Request) {
     return NextResponse.json({
       success: true,
       media: {
-        _id: `m_${Date.now()}`,
-        eventId: "60c72b2f9b1d8c0015f8a001",
+        _id: new mongoose.Types.ObjectId().toString(),
+        eventId: "demo-event",
         mediaUrl: fallbackUrl,
         mediaType: "image",
         uploaderName: "Guest",

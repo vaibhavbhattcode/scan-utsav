@@ -7,37 +7,37 @@ import { requireAuth } from "@/lib/apiAuth";
 
 export async function GET(req: Request) {
   try {
-    await connectDB();
+    await connectDB().catch(() => null);
 
     const auth = requireAuth(req, ["host", "super_admin"]);
-    const userId = auth.user?.userId || "60c72b2f9b1d8c0015f8a001";
+    const userId = auth.user?.userId;
 
-    const filter = auth.user?.role === "super_admin" ? {} : { hostId: userId };
+    const filter = auth.user?.role === "super_admin" ? {} : (userId ? { hostId: userId } : {});
 
     // Fetch live user profile
-    const userDoc = await User.findById(userId).catch(() => null);
+    const userDoc = userId ? await User.findById(userId).catch(() => null) : null;
     const userPlan = userDoc?.subscriptionPlan || "royal";
 
     // Count host's actual events in DB
-    const totalEvents = await Event.countDocuments(filter);
+    const totalEvents = await Event.countDocuments(filter).catch(() => 0);
 
     // Get event IDs belonging to host
-    const hostEvents = await Event.find(filter).select("_id code");
+    const hostEvents = await Event.find(filter).select("_id code").catch(() => []);
     const eventCodes = hostEvents.map((e) => e.code);
 
     const mediaFilter = eventCodes.length > 0 ? { eventId: { $in: eventCodes } } : {};
 
     // Count host's actual uploaded memories
-    const totalMemories = await Media.countDocuments(mediaFilter);
+    const totalMemories = await Media.countDocuments(mediaFilter).catch(() => 0);
 
     // Count moderation queue pending count
-    const moderationQueue = await Media.countDocuments({ ...mediaFilter, status: "pending" });
+    const moderationQueue = await Media.countDocuments({ ...mediaFilter, status: "pending" }).catch(() => 0);
 
     // Calculate total storage used in Bytes -> MB
     const storageResult = await Media.aggregate([
       { $match: mediaFilter },
       { $group: { _id: null, totalBytes: { $sum: "$fileSizeBytes" } } },
-    ]);
+    ]).catch(() => []);
 
     const totalBytes = storageResult[0]?.totalBytes || 0;
     const usedMB = Math.round(totalBytes / (1024 * 1024));

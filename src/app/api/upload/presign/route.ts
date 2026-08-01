@@ -19,7 +19,7 @@ export async function POST(req: Request) {
       event = await Event.findOne({ code: eventCode }).catch(() => null);
     }
 
-    const eventId = event?._id?.toString() || "60c72b2f9b1d8c0015f8a001";
+    const eventId = event?._id?.toString() || eventCode;
 
     // 2. Validate Content-Type
     const isImage = contentType.startsWith("image/");
@@ -77,7 +77,7 @@ export async function POST(req: Request) {
       presignedUrl: `/api/upload/local-mock-upload?key=${key}`,
       cdnUrl: "https://images.unsplash.com/photo-1519741497674-611481863552?w=800",
       key,
-      eventId: "60c72b2f9b1d8c0015f8a001",
+      eventId: "demo-event",
     }, { status: 200 });
   }
 }

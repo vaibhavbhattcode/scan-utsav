@@ -1,9 +1,10 @@
+import mongoose from "mongoose";
 import { connectDB } from "@/lib/db";
 import User from "@/models/User";
 import { generateTokens } from "@/lib/auth";
 
 export async function authenticateGoogleUser(token: string) {
-  await connectDB();
+  await connectDB().catch(() => null);
 
   try {
     let email = "";
@@ -49,7 +50,7 @@ export async function authenticateGoogleUser(token: string) {
       }
     } catch (dbErr) {
       user = {
-        _id: "60c72b2f9b1d8c0015f8a001",
+        _id: new mongoose.Types.ObjectId().toString(),
         email: email || "google.host@scanutsav.com",
         name: name || "Google User",
         role: "host",
