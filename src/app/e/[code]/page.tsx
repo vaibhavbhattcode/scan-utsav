@@ -215,7 +215,10 @@ export default function GuestEventMemoryPage() {
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!isDragging) setIsDragging(true);
+    const isFileDrag = e.dataTransfer.types && Array.from(e.dataTransfer.types).includes("Files");
+    if (isFileDrag && !isDragging) {
+      setIsDragging(true);
+    }
   };
 
   const handleDragLeave = (e: React.DragEvent) => {
@@ -229,9 +232,11 @@ export default function GuestEventMemoryPage() {
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(false);
-    const droppedFile = e.dataTransfer.files?.[0];
-    if (droppedFile) {
-      processAndUploadFile(droppedFile);
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      const droppedFile = e.dataTransfer.files[0];
+      if (droppedFile && droppedFile.type) {
+        processAndUploadFile(droppedFile);
+      }
     }
   };
 
@@ -626,6 +631,8 @@ export default function GuestEventMemoryPage() {
               <img
                 src={selectedMedia.mediaUrl}
                 alt={selectedMedia.uploaderName}
+                draggable={false}
+                onDragStart={(e) => e.preventDefault()}
                 className="max-h-[75vh] w-auto max-w-full rounded-2xl shadow-2xl object-contain border border-slate-800"
               />
             )}
@@ -644,6 +651,16 @@ export default function GuestEventMemoryPage() {
 
               {/* Action Buttons */}
               <div className="flex items-center gap-2 shrink-0">
+                <a
+                  href={selectedMedia.mediaUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white transition-colors border border-slate-700 flex items-center gap-1.5 text-xs font-bold"
+                  title="Open full size image in new tab"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  <span className="hidden sm:inline">Open</span>
+                </a>
                 <a
                   href={selectedMedia.mediaUrl}
                   target="_blank"
