@@ -1,14 +1,31 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { Plus, QrCode, Camera, Users, Sparkles, TrendingUp, ArrowRight, ShieldCheck } from "lucide-react";
+import { Plus, QrCode, Camera, Users, Sparkles, TrendingUp, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { StorageQuotaMeter } from "@/components/dashboard/StorageQuotaMeter";
 
 export default function HostDashboardOverview() {
-  const [userPlan] = useState("royal");
-  const [usedMB] = useState(4850); // ~4.85 GB used of 25 GB
+  const [stats, setStats] = useState({
+    totalEvents: 3,
+    totalMemories: 844,
+    moderationQueue: 0,
+    usedMB: 4850,
+    uniqueScans: 428,
+    userPlan: "royal",
+  });
+
+  useEffect(() => {
+    fetch("/api/dashboard/stats")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.stats) {
+          setStats(data.stats);
+        }
+      })
+      .catch((err) => console.warn("Failed to load dashboard stats:", err));
+  }, []);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-8 pt-16 sm:pt-20 pb-12 space-y-8 font-sans text-slate-900">
@@ -28,7 +45,7 @@ export default function HostDashboardOverview() {
       </div>
 
       {/* Storage Quota Progress Meter */}
-      <StorageQuotaMeter usedMB={usedMB} plan={userPlan} />
+      <StorageQuotaMeter usedMB={stats.usedMB} plan={stats.userPlan} />
 
       {/* Summary KPI Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -37,7 +54,7 @@ export default function HostDashboardOverview() {
             <span>Total Active Events</span>
             <QrCode className="w-4 h-4 text-[#F2810C]" />
           </div>
-          <div className="text-3xl font-black text-slate-900 font-display">3</div>
+          <div className="text-3xl font-black text-slate-900 font-display">{stats.totalEvents}</div>
           <span className="text-[10px] text-emerald-700 font-bold">All QR codes active</span>
         </div>
 
@@ -46,7 +63,7 @@ export default function HostDashboardOverview() {
             <span>Total Guest Memories</span>
             <Camera className="w-4 h-4 text-amber-600" />
           </div>
-          <div className="text-3xl font-black text-slate-900 font-display">844</div>
+          <div className="text-3xl font-black text-slate-900 font-display">{stats.totalMemories}</div>
           <span className="text-[10px] text-slate-500 font-medium">Photos, Videos & Audio</span>
         </div>
 
@@ -55,7 +72,7 @@ export default function HostDashboardOverview() {
             <span>Unique Guest Scans</span>
             <Users className="w-4 h-4 text-purple-600" />
           </div>
-          <div className="text-3xl font-black text-slate-900 font-display">428</div>
+          <div className="text-3xl font-black text-slate-900 font-display">{stats.uniqueScans}</div>
           <span className="text-[10px] text-emerald-700 font-bold">74.2% Upload Conversion</span>
         </div>
 
@@ -64,8 +81,10 @@ export default function HostDashboardOverview() {
             <span>Moderation Queue</span>
             <ShieldCheck className="w-4 h-4 text-emerald-600" />
           </div>
-          <div className="text-3xl font-black text-slate-900 font-display">0</div>
-          <span className="text-[10px] text-slate-500 font-medium">Auto-Approve Active</span>
+          <div className="text-3xl font-black text-slate-900 font-display">{stats.moderationQueue}</div>
+          <span className="text-[10px] text-slate-500 font-medium">
+            {stats.moderationQueue > 0 ? "Pending Approval" : "Auto-Approve Active"}
+          </span>
         </div>
       </div>
 
