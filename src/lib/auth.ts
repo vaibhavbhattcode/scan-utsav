@@ -2,11 +2,15 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 
 function getJwtSecret(): string {
-  return process.env.JWT_SECRET || "d8f4e1a9b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1";
+  const secret = process.env.JWT_SECRET;
+  if (!secret) throw new Error("JWT_SECRET is not configured");
+  return secret;
 }
 
 function getJwtRefreshSecret(): string {
-  return process.env.JWT_REFRESH_SECRET || "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4";
+  const secret = process.env.JWT_REFRESH_SECRET;
+  if (!secret) throw new Error("JWT_REFRESH_SECRET is not configured");
+  return secret;
 }
 
 export interface TokenPayload {
@@ -49,4 +53,19 @@ export async function hashPassword(password: string): Promise<string> {
 
 export async function comparePassword(password: string, hashed: string): Promise<boolean> {
   return bcrypt.compare(password, hashed);
+}
+
+export function generateGuestEventToken(eventCode: string): string {
+  const secret = getJwtSecret();
+  return jwt.sign({ eventCode: eventCode.toLowerCase(), role: "guest" }, secret, { expiresIn: "24h" });
+}
+
+export function verifyGuestEventToken(token: string, eventCode: string): boolean {
+  try {
+    const secret = getJwtSecret();
+    const payload = jwt.verify(token, secret) as { eventCode?: string; role?: string };
+    return payload?.eventCode?.toLowerCase() === eventCode.toLowerCase();
+  } catch {
+    return false;
+  }
 }

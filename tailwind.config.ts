@@ -77,9 +77,9 @@ const config: Config = {
         },
       },
       fontFamily: {
-        display: ["'Playfair Display'", "Georgia", "serif"],
-        sans: ["'Inter'", "system-ui", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto", "sans-serif"],
-        mono: ["ui-monospace", "SFMono-Regular", "Menlo", "Monaco", "Consolas", "monospace"],
+        display: ["var(--font-display)", "Georgia", "serif"],
+        sans: ["var(--font-inter)", "system-ui", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto", "sans-serif"],
+        mono: ["var(--font-mono)", "ui-monospace", "SFMono-Regular", "Menlo", "Monaco", "Consolas", "monospace"],
       },
       fontSize: {
         "display-sm": ["2.25rem", { lineHeight: "1.1", letterSpacing: "-0.02em" }],

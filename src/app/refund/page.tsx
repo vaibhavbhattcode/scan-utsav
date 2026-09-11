@@ -10,7 +10,7 @@ export default function RefundPage() {
       iconColor: "text-emerald-600",
       bg: "bg-emerald-50 border-emerald-300",
       content: [
-        "ScanUtsav offers a full 100% refund within 7 days of purchase for any paid plan (Royal Utsav or Grand Enterprise) if you are unsatisfied for any reason.",
+        "ScanUtsav offers a full 100% refund within 7 days of purchase for any paid plan (Basic, Standard, Premium, Pro, Business) if you are unsatisfied for any reason.",
         "No questions asked. Simply email concierge@scanutsav.com with your Order ID and registered email address.",
         "Refunds are processed within 5–7 business days to the original payment method (credit card, debit card, or UPI).",
       ],
@@ -22,7 +22,7 @@ export default function RefundPage() {
       bg: "bg-blue-50 border-blue-300",
       content: [
         "Refund request submitted within 7 days of the original purchase date.",
-        "Applies to Royal Utsav (₹2,499) and Grand Enterprise (₹6,999) plans.",
+        "Applies to all paid event and subscription plans.",
         "Event album has not been used to actively collect more than 50 media uploads (trial usage is fine).",
         "Gift pass purchases are eligible for refund only if the recipient has not redeemed the code.",
       ],

@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017/scanutsav";
+const MONGODB_URI = process.env.MONGODB_URI;
 
 interface MongooseCache {
   conn: typeof mongoose | null;
@@ -11,37 +11,35 @@ declare global {
   var mongooseCache: MongooseCache | undefined;
 }
 
-let cached: MongooseCache = global.mongooseCache || { conn: null, promise: null };
-
-if (!global.mongooseCache) {
-  global.mongooseCache = cached;
-}
+const cached: MongooseCache = global.mongooseCache || { conn: null, promise: null };
+if (!global.mongooseCache) global.mongooseCache = cached;
 
 export async function connectDB() {
-  if (cached.conn) {
+  if (!MONGODB_URI) {
+    throw new Error("MONGODB_URI is not configured");
+  }
+
+  if (cached.conn && mongoose.connection.readyState === 1) {
     return cached.conn;
   }
 
   if (!cached.promise) {
-    const opts = {
-      serverSelectionTimeoutMS: 3000,
-      bufferCommands: false,
-    };
-
-    cached.promise = mongoose.connect(MONGODB_URI, opts).then((m) => {
-      console.log("MongoDB Connected Successfully");
-      return m;
-    }).catch(err => {
-      console.warn("MongoDB connection warning:", err.message);
-      return mongoose;
-    });
+    cached.promise = mongoose
+      .connect(MONGODB_URI, {
+        serverSelectionTimeoutMS: 5000,
+        maxPoolSize: 10,
+        bufferCommands: false,
+      })
+      .then((m) => {
+        // MongoDB connected successfully
+        return m;
+      })
+      .catch((err) => {
+        cached.promise = null;
+        throw err;
+      });
   }
 
-  try {
-    cached.conn = await cached.promise;
-  } catch (e) {
-    cached.promise = null;
-  }
-
+  cached.conn = await cached.promise;
   return cached.conn;
 }

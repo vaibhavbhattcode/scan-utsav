@@ -14,6 +14,7 @@ export interface IEvent extends Document {
   isPasswordProtected: boolean;
   password?: string;
   autoApproveMedia: boolean;
+  isUploadDisabled: boolean;
   coverImage?: string;
   qrCodeUrl?: string;
   posterTemplateId?: string;
@@ -24,6 +25,7 @@ export interface IEvent extends Document {
     logoUrl?: string;
     accentColor?: string;
   };
+  purchasedAddons?: { addonId: string; purchasedAt: Date }[];
   createdAt: Date;
   updatedAt: Date;
   compareEventPassword(candidatePassword: string): Promise<boolean>;
@@ -33,8 +35,8 @@ const EventSchema: Schema = new Schema(
   {
     title: { type: String, required: true },
     code: { type: String, required: true, unique: true, index: true },
-    eventType: { type: String, default: "wedding" },
-    hostId: { type: String, required: true },
+    eventType: { type: String, default: "wedding", index: true },
+    hostId: { type: String, required: true, index: true },
     hostName: { type: String, default: "Event Host" },
     eventDate: { type: Date },
     venueName: { type: String },
@@ -43,6 +45,7 @@ const EventSchema: Schema = new Schema(
     isPasswordProtected: { type: Boolean, default: false },
     password: { type: String },
     autoApproveMedia: { type: Boolean, default: true },
+    isUploadDisabled: { type: Boolean, default: false },
     coverImage: { type: String },
     qrCodeUrl: { type: String },
     posterTemplateId: { type: String, default: "wedding-royal" },
@@ -51,13 +54,20 @@ const EventSchema: Schema = new Schema(
       showHostPhoto: { type: Boolean, default: false },
       customMessage: { type: String, default: "" },
       logoUrl: { type: String, default: "" },
-      accentColor: { type: String, default: "" }
-    }
+      accentColor: { type: String, default: "" },
+    },
+    purchasedAddons: [
+      {
+        addonId: { type: String, required: true },
+        purchasedAt: { type: Date, default: Date.now },
+      },
+    ],
   },
   { timestamps: true }
 );
 
-// Hash event password before saving if modified
+EventSchema.index({ hostId: 1, createdAt: -1 });
+
 EventSchema.pre<IEvent>("save", async function (next) {
   if (!this.isModified("password") || !this.password) {
     return next();
@@ -72,7 +82,8 @@ EventSchema.pre<IEvent>("save", async function (next) {
 });
 
 EventSchema.methods.compareEventPassword = async function (candidatePassword: string): Promise<boolean> {
-  if (!this.password) return true;
+  if (!this.isPasswordProtected) return true;
+  if (!candidatePassword || !this.password) return false;
   return bcrypt.compare(candidatePassword, this.password);
 };
 

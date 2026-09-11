@@ -4,7 +4,7 @@ import React, { useEffect } from "react";
 import Link from "next/link";
 import { AlertTriangle, RefreshCw, Home } from "lucide-react";
 
-export default function RootError({
+export default function Error({
   error,
   reset,
 }: {
@@ -12,7 +12,7 @@ export default function RootError({
   reset: () => void;
 }) {
   useEffect(() => {
-    console.error("ScanUtsav Application Error:", error);
+    console.error("ScanUtsav App Error:", error);
   }, [error]);
 
   return (
@@ -30,7 +30,7 @@ export default function RootError({
             Something went wrong
           </h1>
           <p className="text-xs text-slate-600 font-medium leading-relaxed">
-            We encountered an unexpected issue while loading this page. Please try refreshing or return home.
+            We encountered an unexpected issue. Click below to try again or return home.
           </p>
         </div>
 

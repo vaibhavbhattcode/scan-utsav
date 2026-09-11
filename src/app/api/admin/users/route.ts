@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import User from "@/models/User";
-import { requireAuth } from "@/lib/apiAuth";
+import { requireAuthFresh } from "@/lib/apiAuth";
 import { writeAuditLog } from "@/lib/audit";
 
 export async function GET(req: Request) {
-  const auth = requireAuth(req, ["super_admin"]);
+  const auth = await requireAuthFresh(req, ["super_admin"]);
   if (auth.response) return auth.response;
 
   try {
@@ -58,7 +58,7 @@ export async function GET(req: Request) {
 }
 
 export async function PATCH(req: Request) {
-  const auth = requireAuth(req, ["super_admin"]);
+  const auth = await requireAuthFresh(req, ["super_admin"]);
   if (auth.response) return auth.response;
 
   try {

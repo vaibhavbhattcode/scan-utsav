@@ -6,7 +6,7 @@ export interface IUser extends Document {
   passwordHash?: string;
   role: "super_admin" | "host" | "guest";
   avatar?: string;
-  subscriptionPlan: "free" | "starter" | "royal" | "enterprise";
+  subscriptionPlan: "trial" | "lite" | "standard" | "premium" | "ultimate" | "creator" | "studio" | "enterprise";
   storageUsedMB: number;
   isBlocked: boolean;
   blockedIp?: string;
@@ -17,16 +17,16 @@ export interface IUser extends Document {
 
 const UserSchema: Schema = new Schema({
   name: { type: String, required: true },
-  email: { type: String, required: true, unique: true },
+  email: { type: String, required: true, unique: true, index: true },
   passwordHash: { type: String },
-  role: { type: String, enum: ["super_admin", "host", "guest"], default: "host" },
-  avatar: { type: String, default: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200" },
-  subscriptionPlan: { type: String, enum: ["free", "starter", "royal", "enterprise"], default: "starter" },
+  role: { type: String, enum: ["super_admin", "host", "guest"], default: "host", index: true },
+  avatar: { type: String, default: "" },
+  subscriptionPlan: { type: String, enum: ["trial", "lite", "standard", "premium", "ultimate", "creator", "studio", "enterprise"], default: "trial" },
   storageUsedMB: { type: Number, default: 0 },
   isBlocked: { type: Boolean, default: false },
   blockedIp: { type: String, default: "" },
   authProvider: { type: String, default: "local" },
-  googleId: { type: String },
+  googleId: { type: String, index: true, sparse: true },
   createdAt: { type: Date, default: Date.now }
 });
 

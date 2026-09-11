@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { EVENT_TEMPLATES, EventTemplate } from "@/lib/templates";
 import { Button } from "@/components/ui/Button";
@@ -59,7 +60,7 @@ export default function SolutionsPage() {
           <div key={t.id} className="p-6 rounded-3xl space-y-4 border border-slate-200 bg-white shadow-md flex flex-col justify-between group">
             <div className="space-y-3">
               <div className="relative aspect-video rounded-2xl overflow-hidden bg-slate-100 border border-slate-200">
-                <img src={t.coverImage} alt={t.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                <Image src={t.coverImage} alt={t.name} fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover group-hover:scale-105 transition-transform duration-500" />
                 <span className="absolute top-3 left-3 bg-white/90 backdrop-blur-md px-2.5 py-1 rounded-full text-[10px] font-extrabold text-amber-900 uppercase border border-amber-300 shadow-sm">
                   {t.badgeText}
                 </span>

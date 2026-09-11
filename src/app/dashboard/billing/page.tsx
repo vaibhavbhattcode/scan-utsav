@@ -19,32 +19,34 @@ interface InvoiceData {
 
 export default function BillingWorkspacesPage() {
   const { showToast } = useToast();
-  const [currentPlan, setCurrentPlan] = useState("Royal Utsav");
+  const [currentPlan, setCurrentPlan] = useState("starter");
   const [upgrading, setUpgrading] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState<InvoiceData | null>(null);
+  const [invoices, setInvoices] = useState<InvoiceData[]>([]);
+  const [loadingBilling, setLoadingBilling] = useState(true);
 
-  const [invoices, setInvoices] = useState<InvoiceData[]>([
-    {
-      id: "INV-2026-881921",
-      date: "2026-07-20",
-      plan: "Royal Utsav Pass",
-      baseAmount: "₹2,117.80",
-      cgst: "₹190.60",
-      sgst: "₹190.60",
-      total: "₹2,499.00",
-      status: "Paid",
-    },
-    {
-      id: "INV-2026-642018",
-      date: "2026-06-15",
-      plan: "Grand Enterprise Pass",
-      baseAmount: "₹5,931.36",
-      cgst: "₹533.82",
-      sgst: "₹533.82",
-      total: "₹6,999.00",
-      status: "Paid",
-    },
-  ]);
+  useEffect(() => {
+    fetch("/api/payments/razorpay")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          setCurrentPlan(data.plan || "starter");
+          const mapped = (data.invoices || []).map((inv: any) => ({
+            id: inv.id,
+            date: inv.date,
+            plan: String(inv.plan || "").replace(/^\w/, (c: string) => c.toUpperCase()) + " Pass",
+            baseAmount: `₹${inv.baseAmountINR ?? "-"}`,
+            cgst: `₹${inv.cgstINR ?? "-"}`,
+            sgst: `₹${inv.sgstINR ?? "-"}`,
+            total: `₹${inv.amountPaidINR ?? "-"}`,
+            status: inv.status === "active" || inv.status === "canceled" ? "Paid" : inv.status,
+          }));
+          setInvoices(mapped);
+        }
+      })
+      .catch(() => {})
+      .finally(() => setLoadingBilling(false));
+  }, []);
 
   // Lock background scroll when modal is active
   useEffect(() => {
@@ -66,7 +68,6 @@ export default function BillingWorkspacesPage() {
     window.print();
   };
 
-  // Dynamically load Razorpay SDK
   const loadRazorpayScript = (): Promise<boolean> => {
     return new Promise((resolve) => {
       if ((window as any).Razorpay) {
@@ -84,15 +85,10 @@ export default function BillingWorkspacesPage() {
   const handleUpgradePlan = async (planName: string, amountINR: number) => {
     setUpgrading(true);
     try {
-      // Step A: Request Razorpay Order Creation from API
       const res = await fetch("/api/payments/razorpay", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: "create_order",
-          planName,
-          amountINR,
-        }),
+        body: JSON.stringify({ action: "create_order", planName, amountINR }),
       });
 
       const data = await res.json();
@@ -100,80 +96,72 @@ export default function BillingWorkspacesPage() {
         throw new Error(data.error || "Order creation failed");
       }
 
-      // Helper function to call verification endpoint and issue receipt
-      const completeVerification = async (paymentId?: string, signature?: string) => {
-        const verifyRes = await fetch("/api/payments/razorpay", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            action: "verify_payment",
-            planName,
-            razorpayOrderId: data.orderId,
-            razorpayPaymentId: paymentId || `pay_${Date.now()}`,
-            razorpaySignature: signature || "mock_signature_valid",
-          }),
-        });
-
-        const verifyData = await verifyRes.json();
-        if (verifyRes.ok && verifyData.success) {
-          setCurrentPlan(planName);
-          showToast(`Successfully upgraded to ${planName}! 🎉 GST Invoice issued.`, "success");
-
-          const gst = verifyData.invoice.gstInvoice;
-          const newInv: InvoiceData = {
-            id: verifyData.invoice.invoiceNumber,
-            date: new Date().toISOString().split("T")[0],
-            plan: `${planName} Pass`,
-            baseAmount: `₹${gst.baseAmountINR}`,
-            cgst: `₹${gst.cgstINR}`,
-            sgst: `₹${gst.sgstINR}`,
-            total: `₹${gst.totalINR}`,
-            status: "Paid",
-          };
-
-          setInvoices([newInv, ...invoices]);
-          setSelectedInvoice(newInv);
-        } else {
-          throw new Error(verifyData.error || "Payment verification failed");
-        }
-      };
-
-      // Step B: Load Razorpay script & open popup if available
       const isRazorpayLoaded = await loadRazorpayScript();
+      if (!isRazorpayLoaded || !(window as any).Razorpay) {
+        throw new Error("Could not load Razorpay checkout. Check your network.");
+      }
 
-      if (isRazorpayLoaded && (window as any).Razorpay) {
-        const options = {
-          key: data.key,
-          amount: data.amountINR * 100,
-          currency: data.currency,
-          name: "ScanUtsav Technologies",
-          description: `${planName} Celebration Pass`,
-          order_id: data.orderId,
-          handler: async function (response: any) {
-            await completeVerification(response.razorpay_payment_id, response.razorpay_signature);
+      const options = {
+        key: data.key,
+        amount: Math.round(data.amountINR * 100),
+        currency: data.currency || "INR",
+        name: "ScanUtsav Technologies",
+        description: `${planName} Celebration Pass`,
+        order_id: data.orderId,
+        handler: async function (response: any) {
+          try {
+            const verifyRes = await fetch("/api/payments/razorpay", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                action: "verify_payment",
+                planName,
+                razorpayOrderId: response.razorpay_order_id || data.orderId,
+                razorpayPaymentId: response.razorpay_payment_id,
+                razorpaySignature: response.razorpay_signature,
+              }),
+            });
+            const verifyData = await verifyRes.json();
+            if (!verifyRes.ok || !verifyData.success) {
+              throw new Error(verifyData.error || "Payment verification failed");
+            }
+
+            setCurrentPlan(verifyData.plan || planName);
+            showToast(`Successfully upgraded to ${planName}! GST Invoice issued.`, "success");
+
+            const gst = verifyData.invoice.gstInvoice;
+            const newInv: InvoiceData = {
+              id: verifyData.invoice.invoiceNumber,
+              date: new Date().toISOString().split("T")[0],
+              plan: `${planName} Pass`,
+              baseAmount: `₹${gst.baseAmountINR}`,
+              cgst: `₹${gst.cgstINR}`,
+              sgst: `₹${gst.sgstINR}`,
+              total: `₹${gst.totalINR}`,
+              status: "Paid",
+            };
+            setInvoices((prev) => [newInv, ...prev]);
+            setSelectedInvoice(newInv);
+          } catch (err: any) {
+            showToast(err.message || "Verification failed", "error");
+          } finally {
+            setUpgrading(false);
+          }
+        },
+        prefill: {
+          name: data.prefill?.name || "ScanUtsav Host",
+          email: data.prefill?.email || "",
+        },
+        theme: { color: "#F2810C" },
+        modal: {
+          ondismiss: function () {
             setUpgrading(false);
           },
-          prefill: {
-            name: "ScanUtsav Host",
-            email: "host@scanutsav.com",
-          },
-          theme: {
-            color: "#F2810C",
-          },
-          modal: {
-            ondismiss: function () {
-              setUpgrading(false);
-            },
-          },
-        };
+        },
+      };
 
-        const rzp = new (window as any).Razorpay(options);
-        rzp.open();
-      } else {
-        // Fallback test verification when script is blocked or offline
-        await completeVerification();
-        setUpgrading(false);
-      }
+      const rzp = new (window as any).Razorpay(options);
+      rzp.open();
     } catch (err: any) {
       showToast(err.message || "Upgrade failed", "error");
       setUpgrading(false);
@@ -195,8 +183,8 @@ export default function BillingWorkspacesPage() {
         </div>
         <div className="flex items-center gap-2.5 bg-white p-2 px-4 rounded-2xl border border-slate-200 shadow-sm">
           <span className="text-xs font-bold text-slate-600">Current Active Plan:</span>
-          <span className="px-3 py-1 bg-amber-100 text-[#F2810C] font-black text-xs rounded-full border border-amber-300">
-            {currentPlan}
+          <span className="px-3 py-1 bg-amber-100 text-[#F2810C] font-black text-xs rounded-full border border-amber-300 capitalize">
+            {loadingBilling ? "..." : currentPlan}
           </span>
         </div>
       </div>
@@ -213,76 +201,101 @@ export default function BillingWorkspacesPage() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-xs">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 text-xs">
           {/* Free Tier */}
           <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200 space-y-4 flex flex-col justify-between">
             <div className="space-y-3">
               <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-600 bg-slate-200 px-2.5 py-1 rounded-full border border-slate-300">
-                STARTER PASS
+                TRIAL
               </span>
-              <h4 className="text-xl font-black text-slate-900 font-display">Free Utsav</h4>
+              <h4 className="text-xl font-black text-slate-900 font-display">Free Trial</h4>
               <div className="text-3xl font-black text-slate-900 font-display">₹0 <span className="text-xs font-semibold text-slate-500">/ event</span></div>
               <ul className="space-y-2.5 pt-2 text-xs text-slate-700 font-medium">
-                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" /> Up to 50 Guests</li>
+                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" /> 1 Event · 1GB</li>
                 <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" /> 7 Days Cloud Access</li>
-                <li className="flex items-center gap-2 text-slate-400">❌ AI Face Recognition</li>
-                <li className="flex items-center gap-2 text-slate-400">❌ Live TV Slideshow</li>
+                <li className="flex items-center gap-2 text-slate-400">❌ Live Moderation Desk</li>
+                <li className="flex items-center gap-2 text-slate-400">❌ ZIP Archive Download</li>
               </ul>
             </div>
             <Button variant="outline" size="sm" disabled className="w-full text-xs font-bold text-slate-400 border-slate-300 bg-slate-100">
-              Default Plan
+              Default Trial
             </Button>
           </div>
 
-          {/* Royal Utsav */}
-          <div className={`p-6 rounded-2xl border ${currentPlan === "Royal Utsav" ? "border-[#F2810C] bg-amber-50/50 shadow-md ring-2 ring-amber-300" : "border-slate-200 bg-white"} space-y-4 flex flex-col justify-between`}>
+          {/* Celebration Lite */}
+          <div className={`p-6 rounded-2xl border ${currentPlan === "lite" ? "border-[#F2810C] bg-amber-50/50 shadow-md ring-2 ring-amber-300" : "border-slate-200 bg-white"} space-y-4 flex flex-col justify-between`}>
+            <div className="space-y-3">
+              <span className="text-[10px] font-extrabold uppercase tracking-widest text-blue-700 bg-blue-100 px-2.5 py-1 rounded-full border border-blue-300">
+                LITE
+              </span>
+              <h4 className="text-xl font-black text-slate-900 font-display">Celebration Lite</h4>
+              <div className="text-3xl font-black text-slate-900 font-display">₹399 <span className="text-xs font-semibold text-slate-500">/ event</span></div>
+              <ul className="space-y-2.5 pt-2 text-xs text-slate-700 font-medium">
+                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" /> 1 Event · 10GB</li>
+                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" /> 30 Days Cloud Access</li>
+                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" /> Guest Upload & Gallery</li>
+              </ul>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={upgrading || currentPlan === "lite"}
+              onClick={() => handleUpgradePlan("lite", 399)}
+              className="w-full text-xs font-extrabold border-slate-900 text-slate-900 hover:bg-slate-900 hover:text-white"
+            >
+              {currentPlan === "lite" ? "Active Plan" : upgrading ? "Processing..." : "Select Lite (₹399)"}
+            </Button>
+          </div>
+
+          {/* Celebration Standard */}
+          <div className={`p-6 rounded-2xl border ${currentPlan === "standard" ? "border-[#F2810C] bg-amber-50/50 shadow-md ring-2 ring-amber-300" : "border-slate-200 bg-white"} space-y-4 flex flex-col justify-between`}>
             <div className="space-y-3">
               <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#F2810C] bg-amber-100 px-2.5 py-1 rounded-full border border-amber-300">
-                MOST POPULAR
+                ⭐ MOST POPULAR
               </span>
-              <h4 className="text-xl font-black text-slate-900 font-display">Royal Utsav</h4>
-              <div className="text-3xl font-black text-slate-900 font-display">₹2,499 <span className="text-xs font-semibold text-slate-500">+ 18% GST</span></div>
+              <h4 className="text-xl font-black text-slate-900 font-display">Celebration Standard</h4>
+              <div className="text-3xl font-black text-slate-900 font-display">₹899 <span className="text-xs font-semibold text-slate-500">/ event</span></div>
               <ul className="space-y-2.5 pt-2 text-xs text-slate-700 font-medium">
-                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" /> Unlimited Guests</li>
-                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" /> AI Face Recognition</li>
-                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" /> Live TV Slideshow</li>
-                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" /> 30 Days Storage</li>
+                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" /> 1 Event · 50GB</li>
+                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" /> 90 Days Cloud Access</li>
+                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" /> Live Moderation Desk</li>
+                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" /> ZIP Download & QR Studio</li>
               </ul>
             </div>
             <Button
               variant="primary"
               size="sm"
-              disabled={upgrading || currentPlan === "Royal Utsav"}
-              onClick={() => handleUpgradePlan("Royal Utsav", 2499)}
+              disabled={upgrading || currentPlan === "standard"}
+              onClick={() => handleUpgradePlan("standard", 899)}
               className="w-full text-xs font-extrabold bg-[#F2810C] hover:bg-[#D97706] text-white shadow-md"
             >
-              {currentPlan === "Royal Utsav" ? "Active Plan" : upgrading ? "Processing..." : "Upgrade to Royal"}
+              {currentPlan === "standard" ? "Active Plan" : upgrading ? "Processing..." : "Select Standard (₹899)"}
             </Button>
           </div>
 
-          {/* Grand Utsav */}
-          <div className={`p-6 rounded-2xl border ${currentPlan === "Grand Utsav" ? "border-amber-600 bg-amber-50/50 shadow-md ring-2 ring-amber-400" : "border-slate-200 bg-white"} space-y-4 flex flex-col justify-between`}>
+          {/* Celebration Premium */}
+          <div className={`p-6 rounded-2xl border ${currentPlan === "premium" || currentPlan === "ultimate" || currentPlan === "creator" || currentPlan === "studio" || currentPlan === "enterprise" ? "border-amber-600 bg-amber-50/50 shadow-md ring-2 ring-amber-400" : "border-slate-200 bg-white"} space-y-4 flex flex-col justify-between`}>
             <div className="space-y-3">
-              <span className="text-[10px] font-extrabold uppercase tracking-widest text-amber-800 bg-amber-200 px-2.5 py-1 rounded-full border border-amber-300">
-                ENTERPRISE
+              <span className="text-[10px] font-extrabold uppercase tracking-widest text-amber-900 bg-amber-200 px-2.5 py-1 rounded-full border border-amber-300">
+                PREMIUM
               </span>
-              <h4 className="text-xl font-black text-slate-900 font-display">Grand Utsav</h4>
-              <div className="text-3xl font-black text-slate-900 font-display">₹6,999 <span className="text-xs font-semibold text-slate-500">+ 18% GST</span></div>
+              <h4 className="text-xl font-black text-slate-900 font-display">Celebration Premium</h4>
+              <div className="text-3xl font-black text-slate-900 font-display">₹1,499 <span className="text-xs font-semibold text-slate-500">/ event</span></div>
               <ul className="space-y-2.5 pt-2 text-xs text-slate-700 font-medium">
-                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" /> Unlimited Guests & Events</li>
-                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" /> High-Accuracy AI Face Search</li>
-                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" /> Dedicated Cloud Folder</li>
-                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" /> Lifetime Cloud Backup</li>
+                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" /> 1 Event · 100GB</li>
+                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" /> 180 Days Validity</li>
+                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" /> Live TV Slideshow Mode</li>
+                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" /> Custom Branding & AI Tools</li>
               </ul>
             </div>
             <Button
               variant="gold"
               size="sm"
-              disabled={upgrading || currentPlan === "Grand Utsav"}
-              onClick={() => handleUpgradePlan("Grand Utsav", 6999)}
+              disabled={upgrading || currentPlan === "premium" || currentPlan === "ultimate" || currentPlan === "creator" || currentPlan === "studio" || currentPlan === "enterprise"}
+              onClick={() => handleUpgradePlan("premium", 1499)}
               className="w-full text-xs font-extrabold bg-amber-500 hover:bg-amber-600 text-white shadow-md"
             >
-              {currentPlan === "Grand Utsav" ? "Active Plan" : upgrading ? "Processing..." : "Upgrade to Grand"}
+              {currentPlan === "premium" || currentPlan === "ultimate" || currentPlan === "creator" || currentPlan === "studio" || currentPlan === "enterprise" ? "Active Plan" : upgrading ? "Processing..." : "Select Premium (₹1,499)"}
             </Button>
           </div>
         </div>

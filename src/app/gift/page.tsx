@@ -79,48 +79,27 @@ export default function GiftPassPage() {
     setLoading(true);
 
     try {
-      // Step 1: Create order
+      // Step 1: Create Razorpay order
       const orderRes = await fetch("/api/payments/gift", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "create_order", planKey: selectedPlan }),
+        body: JSON.stringify({
+          action: "create_order",
+          planKey: selectedPlan,
+          recipientName,
+          recipientEmail,
+        }),
       });
       const orderData = await orderRes.json();
-      if (!orderData.success) throw new Error(orderData.error || "Order creation failed");
+      if (!orderRes.ok || !orderData.success) throw new Error(orderData.error || "Order creation failed");
 
-      // Step 2: If mock order (no real Razorpay key), complete directly
-      if (orderData.isMock) {
-        const verifyRes = await fetch("/api/payments/gift", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            action: "verify_payment",
-            planKey: selectedPlan,
-            recipientName,
-            recipientEmail,
-            message,
-            razorpayOrderId: orderData.orderId,
-            razorpayPaymentId: `pay_mock_${Date.now()}`,
-            razorpaySignature: "mock_signature",
-          }),
-        });
-        const verifyData = await verifyRes.json();
-        if (verifyData.success) {
-          setSuccess(verifyData);
-          setLoading(false);
-          return;
-        }
-        throw new Error(verifyData.error || "Payment verification failed");
-      }
-
-      // Step 3: Real Razorpay checkout
       if (!razorpayLoaded || !window.Razorpay) {
         throw new Error("Payment gateway is loading. Please try again in a moment.");
       }
 
       const rzpOptions = {
         key: orderData.key,
-        amount: plan.amountINR * 100,
+        amount: Math.round(orderData.amountINR * 100),
         currency: "INR",
         name: "ScanUtsav",
         description: `Gift Pass — ${plan.name}`,
@@ -139,7 +118,7 @@ export default function GiftPassPage() {
                 recipientName,
                 recipientEmail,
                 message,
-                razorpayOrderId: response.razorpay_order_id,
+                razorpayOrderId: response.razorpay_order_id || orderData.orderId,
                 razorpayPaymentId: response.razorpay_payment_id,
                 razorpaySignature: response.razorpay_signature,
               }),

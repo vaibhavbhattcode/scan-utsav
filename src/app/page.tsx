@@ -2,50 +2,50 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import QRCode from "qrcode";
 import { 
-  QrCode, Sparkles, Tv, ShieldCheck, ArrowRight, Camera, Printer, 
-  Download, Star, CheckCircle2, Heart, HelpCircle, Layers, Users, Zap,
-  Check, Play, ChevronRight, Lock, MessageSquare, Image as ImageIcon,
-  Building, Calendar, Flame, Smile, Award
+  QrCode, Sparkles, Tv, ShieldCheck, ArrowRight, Printer, 
+  Download, Star, CheckCircle2, Lock, Award
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { AnimatedCounter } from "@/components/ui/AnimatedCounter";
 
 const OCCASIONS = ["wedding", "ganesh", "navratri", "corporate", "birthday"];
 
 const OCCASION_DATA: Record<string, { title: string; desc: string; image: string; tag: string; features: string[] }> = {
   wedding: {
-    title: "Royal Wedding & Sangeet Celebrations",
-    desc: "Deep maroon & gold foil themes, wax-seal QR medallion standees, live venue TV slideshows, and uncompressed 4K photo archives for your lifelong memory.",
-    image: "https://images.unsplash.com/photo-1519741497674-611481863552?w=800",
+    title: "Royal Indian Wedding & Sangeet Utsav",
+    desc: "Deep maroon & gold foil themes, wax-seal QR medallion standees, live venue TV slideshows, and high-quality photo archives for your lifelong memory.",
+    image: "/images/royal-wedding.webp",
     tag: "Weddings & Sangeet",
-    features: ["Wax-Seal QR Table Standees", "Live TV Slideshow with Guest Names", "Guest Audio Voice Wishes", "4K Uncompressed ZIP Backup"]
+    features: ["Event QR Code Generation", "Live TV Slideshow with Guest Names", "Host Moderation Desk", "High-Quality Photo Download"]
   },
   ganesh: {
     title: "Maha Ganesh Chaturthi Pandal Stream",
-    desc: "Marigold & crimson themes, modak line-art motifs, and real-time live venue TV streaming for thousands of visiting devotees.",
-    image: "https://images.unsplash.com/photo-1605379399642-870262d3d051?w=800",
+    desc: "Marigold & crimson themes, modak line-art motifs, and real-time live venue TV streaming for thousands of visiting Bappa devotees.",
+    image: "/images/ganesh-chaturthi.webp",
     tag: "Ganesh Chaturthi",
-    features: ["High-Volume Devotee Photo Stream", "Live Pandal Screen Projection", "AI Blur & Duplicate Filtering", "7-Day Cloud Storage"]
+    features: ["High-Volume Devotee Photo Stream", "Live Pandal Screen Projection", "Host Moderation Desk", "Cloud Storage Backup"]
   },
   navratri: {
-    title: "Nine-Night Garba & Dandiya Stream",
-    desc: "Royal garba purple & gold mirrorwork motifs, vibrant event skins, and guest audio wish recordings for high-energy dance nights.",
-    image: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800",
+    title: "Nine-Night Garba & Dandiya Raas Stream",
+    desc: "Royal garba purple & gold mirrorwork motifs, vibrant event skins, and guest photo sharing for high-energy dance nights.",
+    image: "/images/navratri-garba.webp",
     tag: "Navratri Garba",
-    features: ["Mirrorwork QR Poster Studio", "Real-Time Dance Floor Photo Feed", "WhatsApp QR Share", "Guest Heart Likes"]
+    features: ["Fast QR Event Access", "Real-Time Dance Floor Photo Feed", "Instant Camera Scannable", "Host Media Desk"]
   },
   corporate: {
     title: "Corporate Summits & Brand Expos",
     desc: "Platinum ink & gold hairline accents, prominent company logo slots, instant GST invoice receipts, and executive reporting.",
-    image: "https://images.unsplash.com/photo-1511578314322-379afb476865?w=800",
+    image: "/images/corporate-summit.webp",
     tag: "Corporate Summits",
-    features: ["Custom Brand Logo Overlay", "Instant 18% GST Invoice", "DPDP Act Privacy Compliant", "Single-Click Zip Download"]
+    features: ["Custom Brand Logo Overlay", "Instant 18% GST Invoice", "DPDP Act Privacy Compliant", "High Speed Cloud Access"]
   },
   birthday: {
     title: "Birthday & Anniversary Parties",
     desc: "Playful confetti scatter backgrounds, friendly QR badges, and instant guest memory collection for your favorite milestones.",
-    image: "https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=800",
+    image: "/images/birthday-party.webp",
     tag: "Birthdays & Parties",
     features: ["Fun Confetti Theme Skins", "Mobile Web Zero-App Upload", "Instant Live Photo Wall", "Digital Guestbook"]
   }
@@ -54,35 +54,31 @@ const OCCASION_DATA: Record<string, { title: string; desc: string; image: string
 const DETAILED_FAQS = [
   {
     question: "Do guests need to download an app to scan and upload photos?",
-    answer: "No! Guests simply point their standard smartphone camera at your printed QR standee or venue TV screen. It opens an instant mobile webpage where they can select and upload 4K photos, HD videos, and voice wishes in under 2 seconds without downloading any app or creating an account."
+    answer: "No! Guests simply point their standard smartphone camera at your printed QR standee or venue TV screen. It opens an instant mobile web gallery where they can select and upload photos and videos in under 2 seconds without downloading any app or creating an account."
   },
   {
     question: "Can I moderate photos before they appear on the Live Venue TV Stream?",
     answer: "Yes! Host Moderation mode lets you view, approve, or reject incoming guest uploads in real-time from your Host Dashboard. Approved media appears instantly on venue TVs, while unapproved items are safely hidden."
   },
   {
-    question: "How do I download all full-resolution photos after the event?",
-    answer: "Hosts can download the complete, uncompressed 4K RAW photo and 60fps video archive in a single ZIP file with one click directly from the Host Dashboard."
+    question: "How do I download all high-resolution photos after the event?",
+    answer: "Hosts can view, approve, and download high-resolution photos and videos individually or by album directly from the Host Dashboard."
   },
   {
-    question: "What printable QR poster and standee formats are available?",
-    answer: "ScanUtsav includes a built-in Printable QR Poster Studio supporting A4 Framed Posters (150-300 DPI), Table Standee Cards, Instagram Story graphics, and WhatsApp Invitation cards designed specifically for your event type."
+    question: "How do I share the QR code with guests?",
+    answer: "ScanUtsav generates a custom, high-resolution QR code for your event. You can download it directly from your dashboard and print it on table standees, invitation cards, or display it on venue screens."
   },
   {
     question: "How does the Live Venue TV Slideshow mode work?",
-    answer: "Simply open your event's live TV slideshow link (`/e/[code]/slideshow`) on any smart TV, laptop, or projector. The stream automatically polls for new approved guest photos every 15 seconds with smooth Ken-Burns transitions and displays a floating corner QR code so guests can scan continuously."
+    answer: "Simply open your event's live TV slideshow link (`/e/[code]/slideshow`) on any smart TV, laptop, or projector. The stream automatically updates with new approved guest photos and displays a floating corner QR code so guests can scan continuously."
   },
   {
-    question: "Is guest data private and compliant with India's DPDP Act & GDPR?",
-    answer: "Yes. All uploads are encrypted in transit via SSL/TLS and stored securely on cloud storage. Photos are only accessible to your event's guests and host. We strictly enforce privacy laws and never share or sell guest media."
-  },
-  {
-    question: "What happens if guests take photos without internet connectivity at the venue?",
-    answer: "Our mobile web app includes offline queueing! Photos captured while offline automatically queue up and upload as soon as the guest's phone detects cellular or venue Wi-Fi connection."
+    question: "Is guest data private and compliant with India's DPDP Act?",
+    answer: "Yes. All uploads are encrypted in transit via SSL/TLS and stored securely on cloud storage. Photos are accessible to your event's guests and host. We strictly enforce privacy standards and never sell guest media."
   },
   {
     question: "Can I get a GST invoice for my corporate event or wedding booking?",
-    answer: "Yes! All paid plans (Royal Utsav and Grand Utsav) automatically issue a GST-compliant tax invoice with 18% GST breakdown (CGST + SGST) downloadable from your Host Dashboard."
+    answer: "Yes! All paid plans automatically issue a GST-compliant tax invoice with 18% GST breakdown (CGST + SGST) downloadable from your Host Dashboard."
   }
 ];
 
@@ -90,23 +86,23 @@ const TESTIMONIALS = [
   {
     name: "Vikram & Ananya Sharma",
     role: "Bride & Groom • Udaipur Destination Wedding",
-    text: "ScanUtsav collected over 1,400 uncompressed photos that our official wedding photographer missed! Guests loved seeing their photos appear on the big screen during the Sangeet.",
+    text: "ScanUtsav collected over 1,400 high-quality photos that our official wedding photographer missed! Guests loved seeing their photos appear on the big screen during the Sangeet.",
     rating: 5,
-    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150"
+    avatar: `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="150" height="150"><rect width="150" height="150" rx="75" fill="#F2810C"/><text x="50%" y="54%" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="56" font-weight="bold" fill="white">VA</text></svg>')}`
   },
   {
     name: "Rajesh Kulkarni",
     role: "Secretary • Lalbaug Festival Committee",
-    text: "We hosted 25,000+ devotees during Ganesh Chaturthi. The live TV slideshow projected all devotee photos seamlessly. Highly recommended for festival pandals!",
+    text: "We hosted thousands of devotees during Ganesh Chaturthi. The live TV slideshow projected all devotee photos seamlessly. Highly recommended for festival pandals!",
     rating: 5,
-    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150"
+    avatar: `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="150" height="150"><rect width="150" height="150" rx="75" fill="#7A1E2B"/><text x="50%" y="54%" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="56" font-weight="bold" fill="white">RK</text></svg>')}`
   },
   {
     name: "Priya Mehta",
     role: "Lead Event Planner • Celebrations India",
-    text: "The printable QR standee generator saved us hours of design work. We generated custom wax-seal table cards that matched the mandap decor perfectly.",
+    text: "The instant QR code generator saved us hours of work. We simply downloaded the QR and printed custom table cards that matched the mandap decor perfectly.",
     rating: 5,
-    avatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150"
+    avatar: `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="150" height="150"><rect width="150" height="150" rx="75" fill="#059669"/><text x="50%" y="54%" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="56" font-weight="bold" fill="white">PM</text></svg>')}`
   }
 ];
 
@@ -116,7 +112,6 @@ export default function LandingHomePage() {
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
   const [heroQrUrl, setHeroQrUrl] = useState<string>("");
 
-  // 3D Tilt Card state
   const [rotX, setRotX] = useState(0);
   const [rotY, setRotY] = useState(0);
 
@@ -124,7 +119,7 @@ export default function LandingHomePage() {
     const origin = typeof window !== "undefined"
       ? window.location.origin
       : (process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000");
-    const scanDestination = origin;
+    const scanDestination = `${origin}/e/DEMO2026`;
 
     QRCode.toDataURL(scanDestination, {
       width: 320,
@@ -150,7 +145,6 @@ export default function LandingHomePage() {
       .catch(() => {});
   }, []);
 
-  // Auto rotate occasion tabs every 4 seconds
   useEffect(() => {
     const timer = setInterval(() => {
       setActiveOccasion((prev) => {
@@ -181,15 +175,15 @@ export default function LandingHomePage() {
     <div className="min-h-screen bg-[#FAF9F6] text-slate-900 selection:bg-amber-500 selection:text-white font-sans overflow-x-hidden">
       {/* Announcement Ticker Banner */}
       <div className="bg-gradient-to-r from-amber-600 via-[#F2810C] to-amber-700 py-1.5 text-center text-[11px] font-bold tracking-wider text-white shadow-md">
-        {cms?.announcementBanner || "🎉 ScanUtsav 3.0 Live: 30+ Festival Presets & Audio Voice Wishes Activated across India!"}
+        {cms?.announcementBanner || "🎉 ScanUtsav 3.0 Live: 30+ Festival & Wedding Presets Activated across India!"}
       </div>
 
-      {/* 1. HERO SECTION (Pure White / Light Ivory Theme) */}
+      {/* 1. HERO SECTION */}
       <section className="relative px-6 py-8 lg:py-14 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
         <div className="lg:col-span-7 space-y-4 text-left">
           <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-50 border border-amber-300 text-amber-950 text-[11px] font-black tracking-widest uppercase shadow-sm">
             <Sparkles className="w-3.5 h-3.5 text-[#F2810C]" />
-            <span>{cms?.heroTagline || "Zero App Downloads • AI Moderated • Live TV Slideshow"}</span>
+            <span>{cms?.heroTagline || "Zero App Downloads • Host Moderation • Live TV Slideshow"}</span>
           </div>
 
           <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black font-display tracking-tight text-slate-900 leading-tight">
@@ -197,7 +191,7 @@ export default function LandingHomePage() {
           </h1>
 
           <p className="text-slate-600 text-xs sm:text-sm max-w-lg leading-relaxed font-semibold">
-            {cms?.heroSubtitle || "India's premier QR-based Event Memory Platform. Collect uncompressed 4K photos, HD videos, and voice wishes from every guest into a live venue TV stream."}
+            {cms?.heroSubtitle || "India's premier QR-based Event Memory Platform. Collect guest photos, videos, and wishes from every guest into a live venue TV stream."}
           </p>
 
           {/* Hero CTAs */}
@@ -223,24 +217,30 @@ export default function LandingHomePage() {
             <span className="flex items-center gap-1.5 text-slate-900"><Award className="w-3.5 h-3.5 text-[#F2810C]" /> Made in India</span>
           </div>
 
-          {/* Real Platform Counters */}
+          {/* Real Platform Counters with Smooth Count-Up Animation */}
           <div className="grid grid-cols-3 gap-4 pt-4 border-t border-slate-200 text-xs">
             <div>
-              <div className="text-xl sm:text-2xl font-black text-amber-700 font-display">{cms?.stats?.memoriesCaptured || "12.5M+"}</div>
+              <div className="text-xl sm:text-2xl font-black text-amber-700 font-display">
+                <AnimatedCounter endValue={12500000} suffix="+" duration={2500} />
+              </div>
               <div className="text-slate-600 text-[11px] mt-0.5 font-bold">Photos Captured</div>
             </div>
             <div>
-              <div className="text-xl sm:text-2xl font-black text-[#F2810C] font-display">{cms?.stats?.eventsHosted || "45,000+"}</div>
+              <div className="text-xl sm:text-2xl font-black text-[#F2810C] font-display">
+                <AnimatedCounter endValue={45000} suffix="+" duration={2000} />
+              </div>
               <div className="text-slate-600 text-[11px] mt-0.5 font-bold">Events Hosted</div>
             </div>
             <div>
-              <div className="text-xl sm:text-2xl font-black text-emerald-700 font-display">{cms?.stats?.uptimePercentage || "99.99%"}</div>
+              <div className="text-xl sm:text-2xl font-black text-emerald-700 font-display">
+                <AnimatedCounter endValue={99.99} decimals={2} suffix="%" duration={1800} />
+              </div>
               <div className="text-slate-600 text-[11px] mt-0.5 font-bold">Platform Uptime</div>
             </div>
           </div>
         </div>
 
-        {/* 3D Tilting Event Invite Card in Light Theme */}
+        {/* 3D Tilting Event Invite Card */}
         <div className="lg:col-span-5 flex justify-center perspective-1000">
           <div
             onMouseMove={handleMouseMove}
@@ -260,10 +260,12 @@ export default function LandingHomePage() {
             <Link href="/" className="block relative">
               <div className="p-3 bg-white rounded-2xl inline-block shadow-lg mx-auto border-4 border-amber-400/60 group-hover:scale-105 transition-transform duration-300 relative overflow-hidden">
                 {heroQrUrl ? (
-                  <img
+                  <Image
                     src={heroQrUrl}
                     alt="Scan to open ScanUtsav website"
-                    className="w-40 h-40 object-contain rounded-lg"
+                    width={160}
+                    height={160}
+                    className="object-contain rounded-lg"
                   />
                 ) : (
                   <div className="w-40 h-40 bg-slate-100 animate-pulse rounded-lg flex items-center justify-center">
@@ -292,14 +294,14 @@ export default function LandingHomePage() {
       <section className="py-6 bg-white border-y border-slate-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-6 text-center space-y-3">
           <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">
-            TRUSTED BY PREMIER WEDDING PLANNERS & HOTELS ACROSS INDIA
+            TRUSTED BY PREMIER WEDDING PLANNERS & FESTIVAL COMMITTEES ACROSS INDIA
           </span>
           <div className="flex flex-wrap items-center justify-center gap-6 md:gap-12 text-slate-700 text-[11px] font-black uppercase tracking-wider opacity-90">
             <span>The Taj Palace</span>
             <span>The Leela Goa</span>
             <span>Umaid Bhawan Palace</span>
             <span>ITC Grand Bharat</span>
-            <span>Lalbaug Festival Committee</span>
+            <span>Lalbaug Ganesh Utsav Committee</span>
             <span>JW Marriott Mumbai</span>
           </div>
         </div>
@@ -337,15 +339,15 @@ export default function LandingHomePage() {
               03
             </div>
             <h3 className="text-lg font-bold text-slate-900 font-display">Guests Scan & Upload</h3>
-            <p className="text-xs text-slate-600 leading-relaxed font-medium">Guests scan with any smartphone camera and upload uncompressed 4K media and audio wishes instantly.</p>
+            <p className="text-xs text-slate-600 leading-relaxed font-medium">Guests scan with any smartphone camera and upload high-resolution media and wishes instantly.</p>
           </div>
 
           <div className="p-6 rounded-3xl border border-slate-200 space-y-3 relative shadow-md bg-white">
             <div className="w-10 h-10 rounded-2xl bg-emerald-100 border border-emerald-300 flex items-center justify-center text-emerald-800 text-lg font-black font-display">
               04
             </div>
-            <h3 className="text-lg font-bold text-slate-900 font-display">Live Stream & ZIP</h3>
-            <p className="text-xs text-slate-600 leading-relaxed font-medium">Broadcast live on venue TVs with Ken-Burns transitions & download full 4K RAW ZIP archives anytime.</p>
+            <h3 className="text-lg font-bold text-slate-900 font-display">Live Stream & Download</h3>
+            <p className="text-xs text-slate-600 leading-relaxed font-medium">Broadcast live on venue TVs with smooth slideshow transitions & download high quality photos anytime.</p>
           </div>
         </div>
       </section>
@@ -406,12 +408,14 @@ export default function LandingHomePage() {
               </div>
             </div>
 
-            <div className="bg-slate-100 p-2 rounded-2xl border border-amber-300 overflow-hidden shadow-xl">
-              <img
+            <div className="bg-slate-100 p-2 rounded-2xl border border-amber-300 overflow-hidden shadow-xl relative h-56 sm:h-64 w-full">
+              <Image
                 key={activeOccasion}
                 src={currentOccasion.image}
                 alt={currentOccasion.title}
-                className="w-full h-56 sm:h-64 object-cover rounded-xl transition-all duration-700 animate-in fade-in"
+                fill
+                priority={activeOccasion === "wedding"}
+                className="object-cover rounded-xl transition-all duration-700 animate-in fade-in"
               />
             </div>
           </div>
@@ -435,7 +439,7 @@ export default function LandingHomePage() {
             </div>
             <h3 className="text-xl font-bold text-slate-900 font-display">Live Venue TV Slideshow Stream</h3>
             <p className="text-slate-600 text-xs leading-relaxed font-medium">
-              Connect any smart TV, venue screen, or projector. Approved guest photos stream live in 4K resolution with smooth Ken-Burns pan-zoom transitions, uploader name tags, and persistent QR corner target.
+              Connect any smart TV, venue screen, or projector. Approved guest photos stream live with smooth slideshow transitions, uploader name tags, and persistent QR corner target.
             </p>
           </div>
 
@@ -445,7 +449,7 @@ export default function LandingHomePage() {
             </div>
             <h3 className="text-lg font-bold text-slate-900 font-display">Printable QR Standee Studio</h3>
             <p className="text-slate-600 text-xs leading-relaxed font-medium">
-              Export print-ready 300 DPI vector PDF standees, table cards, Instagram stories, and WhatsApp invitation cards.
+              Export print-ready PDF standees, table cards, Instagram stories, and WhatsApp invitation graphics.
             </p>
           </div>
 
@@ -453,9 +457,9 @@ export default function LandingHomePage() {
             <div className="w-10 h-10 rounded-2xl bg-emerald-100 border border-emerald-300 flex items-center justify-center text-emerald-800">
               <Download className="w-5 h-5" />
             </div>
-            <h3 className="text-lg font-bold text-slate-900 font-display">Full-Res 4K RAW ZIP Export</h3>
+            <h3 className="text-lg font-bold text-slate-900 font-display">High-Quality Photo & Video Album</h3>
             <p className="text-slate-600 text-xs leading-relaxed font-medium">
-              No photo compression! Download your full resolution camera captures and 60fps HD videos in one structured ZIP file.
+              Easily view and download full-resolution camera captures and HD videos from your event dashboard anytime.
             </p>
           </div>
 
@@ -463,9 +467,9 @@ export default function LandingHomePage() {
             <div className="w-10 h-10 rounded-2xl bg-rose-100 border border-rose-300 flex items-center justify-center text-rose-800">
               <ShieldCheck className="w-5 h-5" />
             </div>
-            <h3 className="text-xl font-bold text-slate-900 font-display">AI Moderation & Duplicate Filtering</h3>
+            <h3 className="text-xl font-bold text-slate-900 font-display">Host Moderation & Security Control</h3>
             <p className="text-slate-600 text-xs leading-relaxed font-medium">
-              Real-time computer vision filters out blurry accidental shots, low-contrast photos, and duplicate captures. Hosts retain 100% control with single-tap manual approval from the Host Dashboard.
+              Hosts retain 100% control with single-tap manual approval or auto-approval modes from the Host Dashboard. Keep unwanted uploads hidden safely.
             </p>
           </div>
         </div>
@@ -479,15 +483,16 @@ export default function LandingHomePage() {
               TRANSPARENT PLANS
             </span>
             <h2 className="text-3xl sm:text-4xl font-black text-slate-900 font-display">Simple, Honest Pricing</h2>
-            <p className="text-slate-600 text-xs font-semibold">Pay once per event. Keep memories forever with instant GST invoices.</p>
+            <p className="text-slate-600 text-xs font-semibold">Pay once per event plan. Prices include 18% GST with instant tax invoices.</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
-            {(cms?.pricingPlans || [
-              { name: "Free Utsav", priceINR: 0, popular: false, maxStorageGB: 1, features: ["Up to 50 Guests", "Basic Gallery Wall", "Standard QR Generator", "7 Days Storage Access"] },
-              { name: "Royal Utsav", priceINR: 2499, popular: true, maxStorageGB: 25, features: ["Unlimited Guests", "Live TV Slideshow Mode", "Custom QR Poster Studio", "Full HD RAW ZIP Archive", "30 Days Active Storage Access"] },
-              { name: "Grand Utsav", priceINR: 6999, popular: false, maxStorageGB: 100, features: ["Unlimited Guests & Events", "AI Face Recognition Ready", "Dedicated Cloud Folder", "WhatsApp Invite Integration", "Lifetime Cloud Storage Backup"] }
-            ]).map((plan: any, idx: number) => (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 text-left">
+            {[
+              { name: "Free Trial", priceINR: 0, popular: false, period: "14 Days Expiry", features: ["1 Event", "Up to 1,500 Photos", "Up to 30 Guests", "ScanUtsav Branding"] },
+              { name: "Celebration Lite", priceINR: 399, popular: false, period: "Per Event", features: ["1 Event", "Up to 3,000 Photos", "30 Days Expiry", "Guest Upload & Gallery"] },
+              { name: "Celebration Standard", priceINR: 899, popular: true, period: "Per Event ⭐", features: ["1 Event", "Up to 15,000 Photos", "90 Days Expiry", "Live Moderation Desk", "ZIP Archive Download"] },
+              { name: "Celebration Premium", priceINR: 1499, popular: false, period: "Per Event", features: ["1 Event", "Up to 30,000 Photos", "180 Days Validity", "Custom Branding", "Live TV Slideshow Mode"] },
+            ].map((plan: any, idx: number) => (
               <div
                 key={idx}
                 className={`p-6 rounded-3xl space-y-5 relative flex flex-col justify-between border shadow-lg bg-white ${
@@ -506,7 +511,7 @@ export default function LandingHomePage() {
 
                   <div className="text-3xl font-black text-slate-900 font-display">
                     ₹{plan.priceINR.toLocaleString()}
-                    <span className="text-xs font-sans text-slate-500 font-normal"> / event</span>
+                    <span className="text-xs font-sans text-slate-500 font-normal"> (18% GST Incl.)</span>
                   </div>
                   <div className="h-px bg-slate-200 my-3" />
                   <ul className="space-y-2 text-xs text-slate-700 font-semibold">
@@ -554,7 +559,9 @@ export default function LandingHomePage() {
               </div>
 
               <div className="flex items-center gap-3 pt-3 border-t border-slate-200">
-                <img src={t.avatar} alt={t.name} className="w-9 h-9 rounded-full object-cover border border-amber-300" />
+                <div className="relative w-9 h-9 rounded-full overflow-hidden border border-amber-300">
+                  <Image src={t.avatar} alt={t.name} fill sizes="36px" className="object-cover" />
+                </div>
                 <div>
                   <h4 className="text-xs font-bold text-slate-900">{t.name}</h4>
                   <p className="text-[10px] text-slate-500 font-medium">{t.role}</p>

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Lock, Mail, User, ArrowRight, Eye, EyeOff, ShieldCheck, Check } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { useToast } from "@/components/ui/Toast";
+import { GoogleLogin } from "@react-oauth/google";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -62,25 +63,25 @@ export default function RegisterPage() {
     }
   };
 
-  const handleGoogleRegister = async () => {
+
+  const handleGoogleSuccess = async (credentialResponse: any) => {
     setLoading(true);
     try {
-      const mockGoogleToken = "mock_google_id_token_scanutsav_2026";
       const res = await fetch("/api/auth/google", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token: mockGoogleToken }),
+        body: JSON.stringify({ token: credentialResponse.credential }),
       });
 
       const data = await res.json();
       if (res.ok && data.success) {
-        showToast("Google account registered successfully! 🎉", "success");
+        showToast("Account created successfully! Welcome to ScanUtsav 🎉", "success");
         router.push("/dashboard");
       } else {
         showToast(data.error || "Google registration failed", "error");
       }
     } catch (err) {
-      showToast("Google registration error", "error");
+      showToast("Google registration connection error", "error");
     } finally {
       setLoading(false);
     }
@@ -100,26 +101,24 @@ export default function RegisterPage() {
         </div>
 
         <div className="glass-panel p-8 rounded-3xl space-y-6 border border-slate-200 shadow-xl bg-white/95">
-          {/* Google OAuth Button */}
-          <button
-            onClick={handleGoogleRegister}
-            type="button"
-            disabled={loading}
-            className="w-full bg-slate-50 hover:bg-slate-100 text-slate-800 font-semibold py-3 px-4 rounded-xl border border-slate-200 text-xs flex items-center justify-center gap-3 transition-colors shadow-sm"
-          >
-            <svg className="w-4 h-4" viewBox="0 0 24 24">
-              <path fill="#EA4335" d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.7 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.3l3.7 2.9C6.5 7.4 9 5 12 5z" />
-              <path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.8z" />
-              <path fill="#FBBC05" d="M5.6 14.8c-.2-.7-.4-1.5-.4-2.3s.2-1.6.4-2.3L1.9 7.3C.7 9.7 0 10.8 0 12s.7 2.3 1.9 4.7l3.7-1.9z" />
-              <path fill="#34A853" d="M12 23c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2.4-6.4-5.2L1.9 16C3.7 19.7 7.5 23 12 23z" />
-            </svg>
-            <span>Register with Google</span>
-          </button>
+          <div className="space-y-4">
+            <div className="w-full flex justify-center">
+              <GoogleLogin
+                onSuccess={handleGoogleSuccess}
+                onError={() => showToast("Google authentication failed", "error")}
+                useOneTap
+                theme="outline"
+                size="large"
+                width="350"
+                text="signup_with"
+              />
+            </div>
 
-          <div className="flex items-center gap-3 text-slate-400 text-[11px]">
-            <div className="h-px bg-slate-200 flex-1" />
-            <span>OR REGISTER WITH EMAIL</span>
-            <div className="h-px bg-slate-200 flex-1" />
+            <div className="flex items-center gap-3 text-slate-400 text-[11px]">
+              <div className="h-px bg-slate-200 flex-1" />
+              <span>OR REGISTER WITH EMAIL</span>
+              <div className="h-px bg-slate-200 flex-1" />
+            </div>
           </div>
 
           <form onSubmit={handleRegisterSubmit} className="space-y-4">

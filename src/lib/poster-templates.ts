@@ -22,7 +22,7 @@ export const POSTER_TEMPLATES: PosterTemplateConfig[] = [
     name: "Royal Royal Wedding Medallion",
     eventType: "wedding",
     description: "Deep maroon & gold foil palette with wax-seal medallion QR frame and paisley border.",
-    previewThumbnailUrl: "https://images.unsplash.com/photo-1519741497674-611481863552?w=300",
+    previewThumbnailUrl: "/images/royal-wedding.webp",
     colors: {
       primary: "#7A1E2B",
       secondary: "#C9A24B",
@@ -37,7 +37,7 @@ export const POSTER_TEMPLATES: PosterTemplateConfig[] = [
     name: "Maha Ganesh Chaturthi Pandal",
     eventType: "ganesh-chaturthi",
     description: "Rich marigold & deep crimson with modak line-art motif and bold pandal display type.",
-    previewThumbnailUrl: "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=300",
+    previewThumbnailUrl: "/images/ganesh-chaturthi.webp",
     colors: {
       primary: "#F2810C",
       secondary: "#7A1E2B",
@@ -52,7 +52,7 @@ export const POSTER_TEMPLATES: PosterTemplateConfig[] = [
     name: "Navratri Dandiya Mirrorwork",
     eventType: "navratri",
     description: "Vibrant royal purple & gold with garba mirror-work dots and dandiya divider lines.",
-    previewThumbnailUrl: "https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?w=300",
+    previewThumbnailUrl: "/images/navratri-garba.webp",
     colors: {
       primary: "#8B5CF6",
       secondary: "#C9A24B",
@@ -67,7 +67,7 @@ export const POSTER_TEMPLATES: PosterTemplateConfig[] = [
     name: "Janmashtami Morpankh Grace",
     eventType: "janmashtami",
     description: "Peacock blue & gold with morpankh feather flourishes and flute-inspired dividers.",
-    previewThumbnailUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300",
+    previewThumbnailUrl: "/images/ganesh-chaturthi.webp",
     colors: {
       primary: "#0284C7",
       secondary: "#C9A24B",
@@ -82,7 +82,7 @@ export const POSTER_TEMPLATES: PosterTemplateConfig[] = [
     name: "Confetti Celebration Badge",
     eventType: "birthday",
     description: "Playful bright palette with confetti scatter background and friendly badge QR layout.",
-    previewThumbnailUrl: "https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=300",
+    previewThumbnailUrl: "/images/birthday-party.webp",
     colors: {
       primary: "#EC4899",
       secondary: "#F59E0B",
@@ -97,7 +97,7 @@ export const POSTER_TEMPLATES: PosterTemplateConfig[] = [
     name: "Platinum Summit Executive",
     eventType: "corporate",
     description: "Sleek platinum ink & gold hairline accents with prominent company logo slot.",
-    previewThumbnailUrl: "https://images.unsplash.com/photo-1511578314322-379afb476865?w=300",
+    previewThumbnailUrl: "/images/corporate-summit.webp",
     colors: {
       primary: "#14100D",
       secondary: "#C9A24B",
@@ -111,7 +111,7 @@ export const POSTER_TEMPLATES: PosterTemplateConfig[] = [
 
 export function getDefaultTemplateForEventType(eventType: string): PosterTemplateConfig {
   const match = POSTER_TEMPLATES.find((t) => t.eventType === eventType);
-  return match || POSTER_TEMPLATES[0]; // fallback to Royal Wedding template
+  return match || POSTER_TEMPLATES[0];
 }
 
 export function getTemplateById(id: string): PosterTemplateConfig {

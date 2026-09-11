@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import Event from "@/models/Event";
-import { requireAuth } from "@/lib/apiAuth";
+import { requireAuthFresh } from "@/lib/apiAuth";
 
 export async function GET(req: Request) {
   // Enforce Super Admin authorization
-  const auth = requireAuth(req, ["super_admin"]);
+  const auth = await requireAuthFresh(req, ["super_admin"]);
   if (auth.response) return auth.response;
 
   try {

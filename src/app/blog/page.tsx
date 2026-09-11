@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { Search, Clock, ArrowRight, BookOpen, Calendar, Tag, TrendingUp } from "lucide-react";
 
@@ -18,45 +19,45 @@ interface BlogPost {
 
 const BLOG_POSTS: BlogPost[] = [
   {
-    slug: "how-to-collect-uncompressed-4k-wedding-photos",
-    title: "How to Collect Uncompressed 4K Wedding Photos From 500 Guests",
-    excerpt: "Learn how QR-based memory portals eliminate WhatsApp photo compression and gather RAW camera photos from all wedding guests instantly without any app downloads.",
+    slug: "how-to-collect-high-quality-wedding-photos",
+    title: "How to Collect High-Quality Wedding Photos From 500 Guests",
+    excerpt: "Learn how QR-based memory portals eliminate WhatsApp photo compression and gather high-quality camera photos from all wedding guests instantly without any app downloads.",
     category: "Wedding Planning",
     readTime: "5 min read",
     author: "Ananya Sharma",
     date: "July 24, 2026",
-    coverImage: "https://images.unsplash.com/photo-1519741497674-611481863552?w=800",
+    coverImage: "/images/blog-wedding-4k.webp",
     featured: true,
   },
   {
-    slug: "top-10-indian-festival-qr-standee-designs",
-    title: "Top 10 Indian Festival QR Standee Designs for Ganesh Utsav & Navratri",
-    excerpt: "Discover print-ready standee poster designs with marigold, modak line-art, and garba mirrorwork borders that delight devotees and wedding guests alike.",
+    slug: "top-creative-ways-to-display-qr-codes",
+    title: "Top Creative Ways to Display Your Event QR Codes",
+    excerpt: "Discover creative ways to display your event's QR code on table standees, projectors, and physical invitation cards that delight guests.",
     category: "Festival Guides",
     readTime: "7 min read",
     author: "Vikram Sethi",
     date: "July 20, 2026",
-    coverImage: "https://images.unsplash.com/photo-1605379399642-870262d3d051?w=800",
+    coverImage: "/images/blog-qr-photo.webp",
   },
   {
     slug: "setting-up-live-venue-tv-slideshows",
     title: "Setting Up Live Venue TV Slideshows for Reception Halls & Pandals",
-    excerpt: "Step-by-step guide to projecting real-time guest photo uploads on venue big screens with 15-second auto-polling and Ken Burns pan/zoom transitions.",
+    excerpt: "Step-by-step guide to projecting real-time guest photo uploads on venue big screens with auto-polling and Ken Burns pan/zoom transitions.",
     category: "Event Tech",
     readTime: "4 min read",
     author: "Rohan Verma",
     date: "July 15, 2026",
-    coverImage: "https://images.unsplash.com/photo-1511578314322-379afb476865?w=800",
+    coverImage: "/images/ganesh-chaturthi.webp",
   },
   {
-    slug: "ai-photo-moderation-wedding-events",
-    title: "Why AI Photo Moderation is Essential for Large Wedding Events",
-    excerpt: "Understand how computer vision quality filters protect your event gallery from blurry shots, duplicate uploads, and inappropriate content in real time.",
+    slug: "ai-face-search-wedding-events",
+    title: "Why AI Face Search is Essential for Large Wedding Events",
+    excerpt: "Understand how our AI computer vision helps guests instantly find all their own photos in a massive gallery without scrolling for hours.",
     category: "Event Tech",
     readTime: "6 min read",
     author: "Priya Mehta",
     date: "July 10, 2026",
-    coverImage: "https://images.unsplash.com/photo-1583939003579-730e3918a45a?w=800",
+    coverImage: "/images/blog-privacy-dpdp.webp",
   },
   {
     slug: "gst-invoicing-corporate-events-india",
@@ -66,7 +67,7 @@ const BLOG_POSTS: BlogPost[] = [
     readTime: "8 min read",
     author: "Rajesh Kulkarni",
     date: "July 5, 2026",
-    coverImage: "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=800",
+    coverImage: "/images/corporate-summit.webp",
   },
   {
     slug: "dpdp-act-2023-event-photo-privacy",
@@ -76,7 +77,7 @@ const BLOG_POSTS: BlogPost[] = [
     readTime: "5 min read",
     author: "Ananya Sharma",
     date: "June 28, 2026",
-    coverImage: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800",
+    coverImage: "/images/blog-privacy-dpdp.webp",
   },
 ];
 
@@ -165,10 +166,13 @@ export default function BlogHubPage() {
           <div className="bg-white rounded-3xl border border-slate-200 shadow-xl overflow-hidden group">
             <div className="grid grid-cols-1 md:grid-cols-2">
               <div className="relative h-64 md:h-auto overflow-hidden">
-                <img
+                <Image
                   src={featuredPost.coverImage}
                   alt={featuredPost.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                  fill
+                  priority
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                  className="object-cover group-hover:scale-105 transition-transform duration-700"
                 />
                 <div className="absolute inset-0 bg-gradient-to-r from-black/20 to-transparent" />
                 <span className="absolute top-4 left-4 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-[#F2810C] text-white border border-[#F2810C] shadow-md">
@@ -212,10 +216,12 @@ export default function BlogHubPage() {
                 <Link key={post.slug} href={`/blog/${post.slug}`} className="block group">
                   <div className="bg-white rounded-3xl overflow-hidden border border-slate-200 shadow-md hover:shadow-xl transition-all duration-300 flex flex-col h-full hover:border-amber-300">
                     <div className="relative h-48 overflow-hidden">
-                      <img
+                      <Image
                         src={post.coverImage}
                         alt={post.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        fill
+                        sizes="(max-width: 768px) 100vw, 33vw"
+                        className="object-cover group-hover:scale-105 transition-transform duration-500"
                       />
                       <span className={`absolute top-3 right-3 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border ${CATEGORY_COLORS[post.category]}`}>
                         {post.category}

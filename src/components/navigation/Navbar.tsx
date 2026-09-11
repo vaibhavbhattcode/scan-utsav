@@ -39,8 +39,8 @@ export const Navbar = () => {
     }
   };
 
-  // Do not render Navbar on Live TV Slideshow pages to avoid visual overlap
-  if (pathname && pathname.includes("/slideshow")) {
+  // Do not render Navbar on Live TV Slideshow, Admin, and Dashboard pages
+  if (pathname && (pathname.includes("/slideshow") || pathname.startsWith("/admin") || pathname.startsWith("/dashboard"))) {
     return null;
   }
 
@@ -57,12 +57,14 @@ export const Navbar = () => {
     <nav className="fixed top-0 left-0 right-0 z-50 px-4 py-3 print:hidden font-sans">
       <div className="max-w-7xl mx-auto bg-white/95 backdrop-blur-xl rounded-2xl px-5 py-2.5 flex items-center justify-between border border-slate-300 shadow-md shadow-slate-900/5 transition-all duration-300">
         {/* Brand Text Logo Only — High Visibility Light Theme Typography */}
-        <Link href="/" className="flex flex-col group">
-          <span className="text-2xl font-black tracking-tight text-slate-900 font-sans group-hover:scale-105 transition-transform duration-300">
+        <Link href="/" className="flex items-center gap-2 group">
+          <img
+            src="/images/logo-icon.webp"
+            alt="ScanUtsav Lotus Logo"
+            className="w-7 h-7 object-contain group-hover:scale-105 transition-transform duration-300"
+          />
+          <span className="text-xl font-black tracking-tight text-slate-900 font-sans group-hover:scale-105 transition-transform duration-300">
             Scan<span className="text-[#F2810C]">Utsav</span>
-          </span>
-          <span className="text-[9px] text-slate-500 font-extrabold tracking-widest uppercase -mt-1 font-sans">
-            Relive Forever
           </span>
         </Link>
 

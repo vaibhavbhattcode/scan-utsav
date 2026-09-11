@@ -2,16 +2,17 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { QrCode, Download, Printer, ArrowLeft, Check, Building2, Sliders, Sparkles } from "lucide-react";
+import { QrCode, Download, Printer, ArrowLeft, Check, Building2, Sliders, Sparkles, Share2, RefreshCw, FileText } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import { generateQRCodeDataUrl } from "@/lib/qr-service";
+import { useToast } from "@/components/ui/Toast";
+import { generateQRCodeDataUrl, generateQRCodeSvgString } from "@/lib/qr-service";
 
 export default function QRBuilderStudio() {
   const [events, setEvents] = useState<any[]>([]);
   const [selectedEventCode, setSelectedEventCode] = useState<string>("");
 
   const [eventTitle, setEventTitle] = useState("ScanUtsav Celebration");
-  const [eventCode, setEventCode] = useState("demo-event");
+  const [eventCode, setEventCode] = useState("");
   const [tagline, setTagline] = useState("Scan to Upload Your Photos & Wishes!");
   const [qrColor, setQrColor] = useState("#F2810C");
   const [template, setTemplate] = useState<"royal" | "golden" | "minimal">("royal");
@@ -50,6 +51,8 @@ export default function QRBuilderStudio() {
     }
   };
 
+  const { showToast } = useToast();
+
   useEffect(() => {
     const origin = typeof window !== "undefined" ? window.location.origin : "https://scanutsav.com";
     const targetUrl = `${origin}/e/${eventCode}`;
@@ -67,10 +70,57 @@ export default function QRBuilderStudio() {
     link.href = qrDataUrl;
     link.download = `${eventTitle.replace(/[^a-z0-9]/gi, "_")}_QR_Poster.png`;
     link.click();
+    showToast("Downloaded High-Res PNG QR Poster", "success");
+  };
+
+  const handleDownloadSVG = async () => {
+    try {
+      const origin = typeof window !== "undefined" ? window.location.origin : "https://scanutsav.com";
+      const targetUrl = `${origin}/e/${eventCode}`;
+      const svgString = await generateQRCodeSvgString(targetUrl, { colorDark: qrColor });
+      const blob = new Blob([svgString], { type: "image/svg+xml;charset=utf-8" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = `${eventTitle.replace(/[^a-z0-9]/gi, "_")}_Vector_QR.svg`;
+      link.click();
+      showToast("Downloaded Vector SVG QR Code", "success");
+    } catch {
+      showToast("Failed to generate SVG QR", "error");
+    }
   };
 
   const handlePrintTrigger = () => {
     window.print();
+  };
+
+  const handleRegenerateQR = () => {
+    const origin = typeof window !== "undefined" ? window.location.origin : "https://scanutsav.com";
+    const targetUrl = `${origin}/e/${eventCode}?r=${Date.now()}`;
+
+    generateQRCodeDataUrl(targetUrl, {
+      colorDark: qrColor,
+      colorLight: "#ffffff",
+      width: 400,
+    }).then((url) => {
+      setQrDataUrl(url);
+      showToast("Regenerated QR Code matrix", "success");
+    });
+  };
+
+  const handleShareQR = () => {
+    const origin = typeof window !== "undefined" ? window.location.origin : "https://scanutsav.com";
+    const targetUrl = `${origin}/e/${eventCode}`;
+
+    if (navigator.share) {
+      navigator.share({
+        title: eventTitle,
+        text: tagline,
+        url: targetUrl,
+      }).catch(() => {});
+    } else {
+      navigator.clipboard.writeText(targetUrl);
+      showToast("Event QR album link copied to clipboard!", "success");
+    }
   };
 
   return (
@@ -87,15 +137,30 @@ export default function QRBuilderStudio() {
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <Button variant="glass" size="md" onClick={handlePrintTrigger} className="bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 font-bold text-xs">
-            <Printer className="w-4 h-4 text-[#F2810C]" />
-            <span>Print Poster</span>
+        <div className="flex items-center gap-2 flex-wrap">
+          <Button variant="glass" size="sm" onClick={handleRegenerateQR} className="bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 font-bold text-xs">
+            <RefreshCw className="w-3.5 h-3.5 text-blue-600" />
+            <span>Regenerate</span>
           </Button>
 
-          <Button variant="primary" size="md" onClick={handleDownloadPNG} className="bg-[#F2810C] hover:bg-[#D97706] text-white font-bold text-xs shadow-md border border-[#F2810C]">
-            <Download className="w-4 h-4" />
-            <span>Download High-Res PNG</span>
+          <Button variant="glass" size="sm" onClick={handleShareQR} className="bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 font-bold text-xs">
+            <Share2 className="w-3.5 h-3.5 text-emerald-600" />
+            <span>Share</span>
+          </Button>
+
+          <Button variant="glass" size="sm" onClick={handleDownloadSVG} className="bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 font-bold text-xs">
+            <FileText className="w-3.5 h-3.5 text-purple-600" />
+            <span>SVG</span>
+          </Button>
+
+          <Button variant="glass" size="sm" onClick={handlePrintTrigger} className="bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 font-bold text-xs">
+            <Printer className="w-3.5 h-3.5 text-[#F2810C]" />
+            <span>Print / PDF</span>
+          </Button>
+
+          <Button variant="primary" size="sm" onClick={handleDownloadPNG} className="bg-[#F2810C] hover:bg-[#D97706] text-white font-bold text-xs shadow-md border border-[#F2810C]">
+            <Download className="w-3.5 h-3.5" />
+            <span>Download PNG</span>
           </Button>
         </div>
       </div>

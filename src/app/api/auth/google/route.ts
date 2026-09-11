@@ -3,6 +3,7 @@ import { authenticateGoogleUser } from "@/lib/google-auth";
 
 export async function POST(req: Request) {
   try {
+    const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
     const body = await req.json();
     const { token } = body;
 
@@ -10,7 +11,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Google token is required" }, { status: 400 });
     }
 
-    const { user, tokens } = await authenticateGoogleUser(token);
+    const { user, tokens } = await authenticateGoogleUser(token, ip);
 
     const res = NextResponse.json({
       success: true,
@@ -23,6 +24,7 @@ export async function POST(req: Request) {
       path: "/",
       sameSite: "lax",
       secure: process.env.NODE_ENV === "production",
+      maxAge: 60 * 60 * 2,
     });
 
     return res;

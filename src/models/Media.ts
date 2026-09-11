@@ -21,8 +21,18 @@ export interface IMedia extends Document {
   }[];
   aiTags: string[];
   isDuplicateFlagged: boolean;
+  isFeatured: boolean;
   fileSizeBytes: number;
   createdAt: Date;
+  
+  // AI Face Recognition
+  aiProcessingStatus: "pending" | "processing" | "completed" | "failed";
+  faceCount: number;
+  faces: {
+    embedding: number[];
+    box: number[];
+    detScore: number;
+  }[];
 }
 
 const MediaSchema: Schema = new Schema({
@@ -48,8 +58,22 @@ const MediaSchema: Schema = new Schema({
   ],
   aiTags: [{ type: String }],
   isDuplicateFlagged: { type: Boolean, default: false },
-  fileSizeBytes: { type: Number, default: 2450000 },
-  createdAt: { type: Date, default: Date.now }
+  isFeatured: { type: Boolean, default: false },
+  fileSizeBytes: { type: Number, default: 0 },
+  createdAt: { type: Date, default: Date.now },
+  
+  aiProcessingStatus: { type: String, enum: ["pending", "processing", "completed", "failed"], default: "pending" },
+  faceCount: { type: Number, default: 0 },
+  faces: [
+    {
+      embedding: [{ type: Number }],
+      box: [{ type: Number }],
+      detScore: { type: Number }
+    }
+  ]
 });
+
+MediaSchema.index({ eventId: 1, createdAt: -1 });
+MediaSchema.index({ eventId: 1, status: 1, createdAt: -1 });
 
 export default mongoose.models.Media || mongoose.model<IMedia>("Media", MediaSchema);

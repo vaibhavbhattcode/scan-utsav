@@ -1,58 +1,49 @@
 import { v2 as cloudinary } from "cloudinary";
-import fs from "fs";
-import path from "path";
 
-function configureCloudinary() {
-  const cloud_name = process.env.CLOUDINARY_CLOUD_NAME || "scanutsav-demo";
+function getCloudinaryConfig() {
+  const cloud_name = process.env.CLOUDINARY_CLOUD_NAME;
   const api_key = process.env.CLOUDINARY_API_KEY;
   const api_secret = process.env.CLOUDINARY_API_SECRET;
 
-  cloudinary.config({
-    cloud_name,
-    api_key,
-    api_secret,
-    secure: true,
-  });
+  if (!cloud_name || !api_key || !api_secret) {
+    throw new Error("Cloudinary credentials missing. Set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET.");
+  }
 
+  return { cloud_name, api_key, api_secret };
+}
+
+export function configureCloudinary() {
+  const { cloud_name, api_key, api_secret } = getCloudinaryConfig();
+  cloudinary.config({ cloud_name, api_key, api_secret, secure: true });
   return { cloud_name, api_key, api_secret };
 }
 
 export { cloudinary };
 
-/**
- * Save file locally to /public/uploads/ as ultra-reliable fallback
- */
-function saveFileLocally(
-  buffer: Buffer,
+/** Signed params so browsers can upload directly to Cloudinary (no file proxy via Next.js). */
+export function getSignedUploadParams(
   folder: string,
-  resourceType: "image" | "video" | "auto"
-): { secureUrl: string; bytes: number; publicId: string; resourceType: string } {
-  try {
-    const uploadsDir = path.join(process.cwd(), "public", "uploads", folder);
-    if (!fs.existsSync(uploadsDir)) {
-      fs.mkdirSync(uploadsDir, { recursive: true });
-    }
+  resourceType: "image" | "video" | "auto" = "auto"
+) {
+  const { cloud_name, api_key, api_secret } = configureCloudinary();
+  const timestamp = Math.round(Date.now() / 1000);
 
-    const ext = resourceType === "video" ? "mp4" : "jpg";
-    const filename = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${ext}`;
-    const filePath = path.join(uploadsDir, filename);
-    fs.writeFileSync(filePath, buffer);
+  // Only params that will be sent in the upload request (besides file/api_key/resource_type)
+  const paramsToSign: Record<string, string | number> = {
+    folder,
+    timestamp,
+  };
 
-    return {
-      secureUrl: `/uploads/${folder}/${filename}`,
-      bytes: buffer.length,
-      publicId: `local_${Date.now()}`,
-      resourceType: resourceType === "video" ? "video" : "image",
-    };
-  } catch (err) {
-    console.error("Local file save error:", err);
-    return {
-      secureUrl: "https://images.unsplash.com/photo-1519741497674-611481863552?w=800",
-      bytes: buffer.length,
-      publicId: `fallback_${Date.now()}`,
-      resourceType: "image",
-    };
-  }
+  const signature = cloudinary.utils.api_sign_request(paramsToSign, api_secret);
+
+  return {
+    cloudName: cloud_name,
+    apiKey: api_key,
+    timestamp,
+    signature,
+    folder,
+    resourceType,
+  };
 }
 
 export async function uploadToCloudinary(
@@ -62,13 +53,14 @@ export async function uploadToCloudinary(
 ): Promise<{ secureUrl: string; bytes: number; publicId: string; resourceType: string }> {
   configureCloudinary();
 
-  try {
-    const result = await new Promise<{ secureUrl: string; bytes: number; publicId: string; resourceType: string }>((resolve, reject) => {
+  return new Promise((resolve, reject) => {
+    if (Buffer.isBuffer(fileBuffer)) {
       const uploadStream = cloudinary.uploader.upload_stream(
         { folder, resource_type: resourceType },
         (error, result) => {
           if (error || !result) {
-            return reject(error || new Error("Cloudinary upload failed"));
+            console.error("Cloudinary Stream Upload Error:", error);
+            return reject(error || new Error("Cloudinary stream upload failed"));
           }
           resolve({
             secureUrl: result.secure_url,
@@ -78,37 +70,40 @@ export async function uploadToCloudinary(
           });
         }
       );
-
-      if (Buffer.isBuffer(fileBuffer)) {
-        uploadStream.end(fileBuffer);
-      } else {
-        cloudinary.uploader.upload(
-          fileBuffer,
-          { folder, resource_type: resourceType },
-          (error, result) => {
-            if (error || !result) return reject(error || new Error("Cloudinary upload failed"));
-            resolve({
-              secureUrl: result.secure_url,
-              bytes: result.bytes,
-              publicId: result.public_id,
-              resourceType: result.resource_type,
-            });
-          }
-        );
-      }
-    });
-
-    return result;
-  } catch (cloudErr: any) {
-    console.warn("Cloudinary upload warning (using local storage fallback):", cloudErr.message || cloudErr);
-    if (Buffer.isBuffer(fileBuffer)) {
-      return saveFileLocally(fileBuffer, folder, resourceType === "auto" ? "image" : resourceType);
+      uploadStream.end(fileBuffer);
+      return;
     }
-    return {
-      secureUrl: "https://images.unsplash.com/photo-1519741497674-611481863552?w=800",
-      bytes: 2450000,
-      publicId: `fallback_${Date.now()}`,
-      resourceType: resourceType === "video" ? "video" : "image",
-    };
+
+    cloudinary.uploader.upload(
+      fileBuffer,
+      { folder, resource_type: resourceType },
+      (error, result) => {
+        if (error || !result) {
+          console.error("Cloudinary File Upload Error:", error);
+          return reject(error || new Error("Cloudinary file upload failed"));
+        }
+        resolve({
+          secureUrl: result.secure_url,
+          bytes: result.bytes,
+          publicId: result.public_id,
+          resourceType: result.resource_type,
+        });
+      }
+    );
+  });
+}
+
+/** Verify a Cloudinary delivery URL belongs to our cloud (basic anti-spoof for media save). */
+export function isTrustedCloudinaryUrl(url: string): boolean {
+  try {
+    const { cloud_name } = getCloudinaryConfig();
+    const parsed = new URL(url);
+    return (
+      parsed.protocol === "https:" &&
+      parsed.hostname === "res.cloudinary.com" &&
+      parsed.pathname.startsWith(`/${cloud_name}/`)
+    );
+  } catch {
+    return false;
   }
 }

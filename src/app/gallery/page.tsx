@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
-import { Heart, Flame, Sparkles, ArrowRight, Eye, Camera, Filter, CheckCircle2 } from "lucide-react";
+import { Eye, Camera, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 
 interface DemoAlbum {
@@ -25,17 +26,17 @@ export default function GalleryPage() {
       category: "wedding",
       location: "The Taj Palace, Udaipur",
       mediaCount: 1420,
-      coverUrl: "https://images.unsplash.com/photo-1519741497674-611481863552?w=800",
+      coverUrl: "/images/royal-wedding.webp",
       tagline: "Deep maroon & gold wax-seal theme with live TV stream",
     },
     {
       id: "durga-puja-2026",
-      title: "Durga Puja & Garba Utsav Night",
+      title: "Navratri Garba & Dandiya Utsav",
       category: "festival",
-      location: "CR Park, New Delhi",
+      location: "GMDC Ground, Ahmedabad",
       mediaCount: 3890,
-      coverUrl: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800",
-      tagline: "High-volume garba dance floor guest photo feed",
+      coverUrl: "/images/navratri-garba.webp",
+      tagline: "High-energy garba dance floor guest photo feed",
     },
     {
       id: "tech-gala-2026",
@@ -43,43 +44,43 @@ export default function GalleryPage() {
       category: "corporate",
       location: "JW Marriott, Bengaluru",
       mediaCount: 850,
-      coverUrl: "https://images.unsplash.com/photo-1511578314322-379afb476865?w=800",
+      coverUrl: "/images/corporate-summit.webp",
       tagline: "Platinum ink theme with GST invoice reporting",
     },
     {
       id: "ganesh-pandal-2026",
-      title: "Maha Ganesh Pandal Stream",
+      title: "Maha Ganesh Chaturthi Pandal Stream",
       category: "festival",
       location: "Lalbaug, Mumbai",
       mediaCount: 12400,
-      coverUrl: "https://images.unsplash.com/photo-1605379399642-870262d3d051?w=800",
-      tagline: "Real-time devotee TV projection stream",
+      coverUrl: "/images/ganesh-chaturthi.webp",
+      tagline: "Real-time Bappa devotee TV projection stream",
     },
     {
       id: "meera-birthday-2026",
-      title: "Meera's 25th Milestone Birthday",
+      title: "Meera's 25th Milestone Celebration",
       category: "party",
       location: "Olive Bar & Kitchen, Mumbai",
       mediaCount: 420,
-      coverUrl: "https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=800",
-      tagline: "Playful confetti scatter theme & guest voice notes",
+      coverUrl: "/images/birthday-party.webp",
+      tagline: "Playful confetti scatter theme & guest wishes",
     },
     {
       id: "rohan-sneha-wedding",
-      title: "Rohan & Sneha Destination Wedding",
+      title: "Rohan & Sneha Mandap Ceremony",
       category: "wedding",
       location: "The Leela, Goa",
       mediaCount: 2150,
-      coverUrl: "https://images.unsplash.com/photo-1583939003579-730e3918a45a?w=800",
-      tagline: "Sunset beach wedding memory wall",
+      coverUrl: "/images/royal-wedding.webp",
+      tagline: "Marigold floral mandap wedding memory wall",
     },
   ];
 
   const categories = [
     { id: "all", label: "All Showcase Albums" },
-    { id: "wedding", label: "Weddings" },
-    { id: "festival", label: "Regional Festivals" },
-    { id: "corporate", label: "Corporate Expos" },
+    { id: "wedding", label: "Weddings & Ceremonies" },
+    { id: "festival", label: "Indian Festivals" },
+    { id: "corporate", label: "Corporate Summits" },
     { id: "party", label: "Birthdays & Parties" },
   ];
 
@@ -98,7 +99,7 @@ export default function GalleryPage() {
           Real Celebrations via <span className="text-[#F2810C]">ScanUtsav</span>
         </h1>
         <p className="text-slate-600 text-sm sm:text-base font-medium">
-          Explore interactive demo showcase albums collected across Indian weddings, garba nights, and corporate summits.
+          Explore interactive showcase albums collected across Indian weddings, Garba nights, Ganesh Chaturthi pandals, and corporate summits.
         </p>
       </div>
 
@@ -125,7 +126,7 @@ export default function GalleryPage() {
           <div key={item.id} className="p-5 rounded-3xl overflow-hidden border border-slate-200 bg-white shadow-md group space-y-4 flex flex-col justify-between">
             <div className="space-y-3">
               <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-slate-100 border border-slate-200">
-                <img src={item.coverUrl} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                <Image src={item.coverUrl} alt={item.title} fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover group-hover:scale-105 transition-transform duration-500" />
                 <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-extrabold text-amber-900 uppercase tracking-widest border border-amber-300 shadow-sm">
                   {item.location}
                 </div>
@@ -156,7 +157,7 @@ export default function GalleryPage() {
       {/* CTA Box */}
       <div className="p-8 sm:p-12 rounded-3xl text-center space-y-6 border-2 border-[#F2810C] bg-[#F2810C] text-white shadow-2xl">
         <div className="space-y-2">
-          <h2 className="text-3xl sm:text-4xl font-black text-white font-display">Host Your Own Album in 60 Seconds</h2>
+          <h2 className="text-3xl sm:text-4xl font-black text-white font-display">Host Your Own Utsav Album in 60 Seconds</h2>
           <p className="text-amber-50 text-sm max-w-md mx-auto font-bold">Create a free event and start receiving guest photos instantly.</p>
         </div>
         <div className="pt-2">

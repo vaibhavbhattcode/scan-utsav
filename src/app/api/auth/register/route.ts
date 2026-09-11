@@ -15,7 +15,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Too many registration attempts. Please try again in a minute." }, { status: 429 });
     }
 
-    await connectDB();
     const body = await req.json();
 
     const validation = registerSchema.safeParse(body);
@@ -25,6 +24,7 @@ export async function POST(req: Request) {
 
     const { name, email, password } = validation.data;
 
+    await connectDB();
     const existing = await User.findOne({ email });
     if (existing) {
       return NextResponse.json({ error: "Email address is already registered" }, { status: 409 });
@@ -36,7 +36,7 @@ export async function POST(req: Request) {
       email,
       passwordHash,
       role: "host",
-      subscriptionPlan: "free",
+      subscriptionPlan: "trial",
     });
 
     const payload = {
@@ -48,10 +48,8 @@ export async function POST(req: Request) {
 
     const tokens = generateTokens(payload);
 
-    // Send welcome email (non-blocking — don't await to keep response fast)
-    sendWelcomeEmail(newUser.email, newUser.name).catch((err) =>
-      console.error("Welcome email failed:", err)
-    );
+    // Send welcome email (non-blocking)
+    sendWelcomeEmail(newUser.email, newUser.name).catch(() => {});
 
     const res = NextResponse.json({
       success: true,

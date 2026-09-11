@@ -5,6 +5,8 @@ import Link from "next/link";
 import { Plus, QrCode, Camera, Users, Sparkles, TrendingUp, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { StorageQuotaMeter } from "@/components/dashboard/StorageQuotaMeter";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { PlatformBroadcastBanner } from "@/components/PlatformBroadcastBanner";
 
 export default function HostDashboardOverview() {
   const [stats, setStats] = useState({
@@ -14,6 +16,8 @@ export default function HostDashboardOverview() {
     usedMB: 0,
     uniqueScans: 0,
     userPlan: "royal",
+    uploadTrends: [] as any[],
+    topGuests: [] as any[],
   });
 
   useEffect(() => {
@@ -29,6 +33,8 @@ export default function HostDashboardOverview() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-8 pt-14 sm:pt-16 pb-12 space-y-8 font-sans text-slate-900">
+      <PlatformBroadcastBanner userRole="host" />
+      
       {/* Top Banner */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-6">
         <div>
@@ -89,7 +95,7 @@ export default function HostDashboardOverview() {
       </div>
 
       {/* Quick Actions Navigation Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <Link href="/dashboard/events" className="glass-card p-6 rounded-2xl border border-slate-200 space-y-3 group hover:border-[#F2810C] transition-all bg-white shadow-sm">
           <div className="w-10 h-10 rounded-xl bg-amber-100 text-[#F2810C] flex items-center justify-center font-bold border border-amber-300">
             <QrCode className="w-5 h-5" />
@@ -113,7 +119,36 @@ export default function HostDashboardOverview() {
           <h3 className="font-bold text-slate-900 text-base group-hover:text-purple-700 transition-colors">Storage & GST Invoices</h3>
           <p className="text-xs text-slate-600 font-medium">Check storage usage, download tax receipts, upgrade plans.</p>
         </Link>
+
+        <Link href="/dashboard/addons" className="glass-card p-6 rounded-2xl border border-slate-200 space-y-3 group hover:border-rose-500 transition-all bg-white shadow-sm">
+          <div className="w-10 h-10 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center font-bold border border-rose-200">
+            <Sparkles className="w-5 h-5" />
+          </div>
+          <h3 className="font-bold text-slate-900 text-base group-hover:text-rose-600 transition-colors">Add-ons Store</h3>
+          <p className="text-xs text-slate-600 font-medium">Unlock AI highlights, white-labeling, and premium features.</p>
+        </Link>
       </div>
+
+      {/* Analytics Charts */}
+      {stats.uploadTrends && stats.uploadTrends.length > 0 && (
+        <div className="glass-card p-6 rounded-2xl border border-slate-200 bg-white shadow-sm mt-8">
+          <h3 className="font-bold text-slate-900 text-lg mb-4">Upload Trends (Last 7 Days)</h3>
+          <div className="h-[300px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={stats.uploadTrends} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
+                <Line type="monotone" dataKey="uploads" stroke="#F2810C" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
+                <CartesianGrid stroke="#ccc" strokeDasharray="5 5" vertical={false} />
+                <XAxis dataKey="date" tick={{fontSize: 12}} tickMargin={10} axisLine={false} tickLine={false} />
+                <YAxis tick={{fontSize: 12}} axisLine={false} tickLine={false} />
+                <Tooltip 
+                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                  labelStyle={{ fontWeight: 'bold', color: '#0f172a' }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

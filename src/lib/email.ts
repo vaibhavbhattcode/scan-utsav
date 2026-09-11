@@ -52,7 +52,7 @@ function wrapEmailHTML(bodyContent: string, previewText?: string): string {
         &nbsp;·&nbsp;
         <a href="https://scanutsav.com/refund" style="color:#F2810C;text-decoration:none;">Refund Policy</a>
       </p>
-      <p style="margin:6px 0 0;">DPDP Act 2023 Compliant · GSTIN: 27AAAAA0000A1Z5</p>
+      <p style="margin:6px 0 0;">DPDP Act 2023 Compliant${process.env.COMPANY_GSTIN ? ` · GSTIN: ${process.env.COMPANY_GSTIN}` : ""}</p>
     </div>
   </div>
 </body>

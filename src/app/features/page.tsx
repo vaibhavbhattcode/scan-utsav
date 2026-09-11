@@ -6,64 +6,64 @@ import { Button } from "@/components/ui/Button";
 
 export const metadata: Metadata = {
   title: "Complete Feature Matrix | ScanUtsav QR Event Platform",
-  description: "Explore all the features built into ScanUtsav: QR studio, live TV slideshow mode, AI photo moderation, 4K RAW ZIP downloads, voice wishes, and printable standees.",
+  description: "Explore all the features built into ScanUtsav: QR event generation, live TV slideshow mode, AI face recognition, high-quality ZIP downloads, and host moderation dashboard.",
 };
 
 export default function FeaturesPage() {
   const features = [
     {
       icon: QrCode,
-      title: "Dynamic QR Generator Studio",
-      desc: "Generate custom QR codes tailored to your event theme. Choose from custom color schemes, wax-seal monogram badges, and export vector PDF posters ready for professional print shops.",
+      title: "Instant QR Generator",
+      desc: "Generate a custom QR code tailored to your event. Simply download it and print it for table standees or venue display.",
       tag: "BRANDING & QR",
       color: "text-[#F2810C] bg-amber-100 border-amber-300"
     },
     {
       icon: Tv,
       title: "Live Venue TV Slideshow Stream",
-      desc: "Transform any venue TV, LED wall, or projector into an interactive live slideshow. Approved guest uploads stream live in 4K resolution with smooth Ken-Burns pan-zoom animations.",
+      desc: "Transform any venue TV, LED wall, or projector into an interactive live slideshow. Approved guest uploads stream live in real-time.",
       tag: "BROADCAST",
       color: "text-amber-800 bg-amber-100 border-amber-300"
     },
     {
       icon: Sparkles,
-      title: "AI Moderation & Quality Filter",
-      desc: "Our computer vision AI checks incoming uploads in real time. It automatically flags duplicate captures, low-contrast blur, or accidental screenshots so your album remains pristine.",
+      title: "AI Face Recognition Search",
+      desc: "Our computer vision AI helps guests find their own photos instantly. They just upload a selfie and the AI fetches all matched photos.",
       tag: "AI VISION",
       color: "text-rose-800 bg-rose-100 border-rose-300"
     },
     {
       icon: Download,
-      title: "Full-Resolution 4K RAW ZIP Archive",
-      desc: "No image compression! Download all guest photos and 60fps HD videos in original camera quality (RAW/PNG/4K) with organized date & folder structures in a single click.",
+      title: "High-Quality ZIP Archive",
+      desc: "Download all guest photos and videos in high quality with a single click from the host dashboard.",
       tag: "EXPORTS",
       color: "text-emerald-800 bg-emerald-100 border-emerald-300"
     },
     {
-      icon: Mic,
-      title: "Audio Voice Wishes & Guestbook",
-      desc: "Guests can record high-quality 30-second audio voice blessings directly through their smartphone browser, creating a digital voice guestbook for hosts.",
-      tag: "GUEST VOICES",
+      icon: ShieldCheck,
+      title: "Manual Host Moderation",
+      desc: "Hosts have full control over what appears on the public live TV stream. Auto-approve all uploads, or manually moderate them.",
+      tag: "SECURITY",
       color: "text-amber-900 bg-amber-100 border-amber-300"
     },
     {
       icon: Printer,
-      title: "Print-Ready QR Standee Studio",
-      desc: "Export A4 framed posters (300 DPI), table cards, Instagram story graphics, and WhatsApp invitation cards custom-generated for your event.",
-      tag: "PRINT MARKETING",
+      title: "GST Invoice Generation",
+      desc: "Perfect for corporate clients and large weddings. Instantly generate a printable 18% GST invoice for your plan purchase.",
+      tag: "BILLING",
       color: "text-purple-800 bg-purple-100 border-purple-300"
     },
     {
-      icon: WifiOff,
-      title: "Offline Sync & Offline Queueing",
-      desc: "If venue cell signal is weak, guest uploads automatically queue safely in local browser memory and stream as soon as cellular data or Wi-Fi reconnects.",
-      tag: "RELIABILITY",
+      icon: Layers,
+      title: "Zero-App Web Portals",
+      desc: "Guests don't need to download any app. They just scan the QR code and instantly upload photos from their mobile browser.",
+      tag: "USER EXPERIENCE",
       color: "text-cyan-800 bg-cyan-100 border-cyan-300"
     },
     {
       icon: MessageSquare,
-      title: "WhatsApp Invite Integration",
-      desc: "Share your event QR code & memory upload link directly to guest WhatsApp groups with rich open-graph thumbnail previews.",
+      title: "WhatsApp Easy Sharing",
+      desc: "Share your event memory upload link directly to guest WhatsApp groups so remote guests can also upload photos.",
       tag: "GROWTH",
       color: "text-emerald-800 bg-emerald-100 border-emerald-300"
     }
@@ -71,11 +71,11 @@ export default function FeaturesPage() {
 
   const comparisonRows = [
     { feature: "Zero App Download Needed", scanutsav: "✅ Yes (Instant Web)", drive: "❌ No (Needs Google Login)", whatsapp: "❌ Compression & Clutter" },
-    { feature: "Live Venue TV Slideshow Mode", scanutsav: "✅ Instant 4K Sync", drive: "❌ Manual Slideshow Only", whatsapp: "❌ Not Available" },
-    { feature: "Full 4K Uncompressed ZIP Archive", scanutsav: "✅ Single-Click ZIP", drive: "⚠️ Slow Multi-Part", whatsapp: "❌ Highly Compressed" },
-    { feature: "Print-Ready QR Standee Studio", scanutsav: "✅ Built-in 300 DPI", drive: "❌ None", whatsapp: "❌ None" },
-    { feature: "AI Duplicate & Blur Moderation", scanutsav: "✅ Real-Time Vision", drive: "❌ Manual Review Only", whatsapp: "❌ None" },
-    { feature: "Voice Blessing Audio Notes", scanutsav: "✅ Built-in Player", drive: "❌ Audio Files Only", whatsapp: "⚠️ Unorganized Voice Notes" },
+    { feature: "Live Venue TV Slideshow Mode", scanutsav: "✅ Instant Live Sync", drive: "❌ Manual Slideshow Only", whatsapp: "❌ Not Available" },
+    { feature: "High Quality ZIP Archive", scanutsav: "✅ Single-Click ZIP", drive: "⚠️ Slow Multi-Part", whatsapp: "❌ Highly Compressed" },
+    { feature: "Instant Event QR Code", scanutsav: "✅ Downloadable", drive: "❌ None", whatsapp: "❌ None" },
+    { feature: "AI Face Recognition Search", scanutsav: "✅ Find yourself instantly", drive: "❌ Manual Search", whatsapp: "❌ None" },
+    { feature: "Host Moderation Dashboard", scanutsav: "✅ Approve/Reject Uploads", drive: "❌ Open Folder", whatsapp: "❌ Anyone can post" },
   ];
 
   return (

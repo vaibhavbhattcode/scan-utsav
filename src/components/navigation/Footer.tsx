@@ -18,8 +18,8 @@ export const Footer = () => {
     setNewsletterEmail("");
   };
 
-  // Suppress Footer on Live TV Slideshow pages to avoid visual clutter
-  if (pathname && pathname.includes("/slideshow")) {
+  // Suppress Footer on Live TV Slideshow, Admin, and Dashboard pages
+  if (pathname && (pathname.includes("/slideshow") || pathname.startsWith("/admin") || pathname.startsWith("/dashboard"))) {
     return null;
   }
 
@@ -67,10 +67,15 @@ export const Footer = () => {
 
         {/* Navigation Grid */}
         <div className="grid grid-cols-1 md:grid-cols-5 gap-10">
-          {/* Column 1: Text Brand Only */}
+          {/* Column 1: Brand Info */}
           <div className="md:col-span-2 space-y-4">
-            <Link href="/" className="inline-block">
-              <span className="text-3xl font-black tracking-tight text-slate-900 font-sans">
+            <Link href="/" className="flex items-center gap-2.5">
+              <img
+                src="/images/logo-icon.webp"
+                alt="ScanUtsav Lotus Logo"
+                className="w-8 h-8 object-contain"
+              />
+              <span className="text-2xl font-black tracking-tight text-slate-900 font-sans">
                 Scan<span className="text-[#F2810C]">Utsav</span>
               </span>
             </Link>

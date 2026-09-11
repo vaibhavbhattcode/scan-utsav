@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { verifyAccessToken } from "@/lib/auth";
+import User from "@/models/User";
+import { connectDB } from "@/lib/db";
 
 export async function GET() {
   try {
@@ -14,7 +16,11 @@ export async function GET() {
       return NextResponse.json({ authenticated: false, user: null });
     }
 
-    return NextResponse.json({ authenticated: true, user: payload });
+    await connectDB();
+    const dbUser = await User.findById(payload.userId).select("subscriptionPlan").lean();
+    const userPlan = (dbUser as any)?.subscriptionPlan || "trial";
+
+    return NextResponse.json({ authenticated: true, user: { ...payload, userPlan } });
   } catch (error) {
     return NextResponse.json({ authenticated: false, user: null });
   }

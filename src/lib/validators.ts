@@ -40,5 +40,5 @@ export const createCouponSchema = z.object({
 export const updateUserSchema = z.object({
   userId: z.string().min(1, "userId is required"),
   role: z.enum(["super_admin", "host", "guest"]).optional(),
-  subscriptionPlan: z.enum(["free", "starter", "royal", "enterprise"]).optional(),
+  subscriptionPlan: z.enum(["trial", "lite", "standard", "premium", "ultimate", "creator", "studio", "enterprise"]).optional(),
 });

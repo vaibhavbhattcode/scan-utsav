@@ -1,10 +1,11 @@
 "use client";
 
 import React from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import {
-  ArrowLeft, Clock, Calendar, User, Share2, BookOpen,
+  ArrowLeft, Clock, Calendar, Share2,
   CheckCircle2, Sparkles, ArrowRight, Heart
 } from "lucide-react";
 
@@ -25,7 +26,7 @@ const BLOG_CONTENT: Record<string, {
     author: "Ananya Sharma",
     date: "July 24, 2026",
     readTime: "5 min read",
-    coverImage: "https://images.unsplash.com/photo-1519741497674-611481863552?w=1200",
+    coverImage: "/images/blog-wedding-4k.webp",
     excerpt: "The biggest heartbreak after a gorgeous Indian wedding is asking 500 guests for photos over WhatsApp and receiving heavily compressed, pixelated images.",
     sections: [
       {
@@ -37,16 +38,12 @@ const BLOG_CONTENT: Record<string, {
         body: "By placing framed QR standees on reception tables and mandap entrances, guests simply point their native iOS or Android camera at the QR code. It opens a 2-second web upload portal without requiring any app download or sign-up — frictionless, instant, and beautiful.",
       },
       {
-        heading: "3. Preserving Uncompressed 4K & RAW Quality",
-        body: "ScanUtsav streams uploads directly to cloud storage via presigned URLs, preserving 100% camera resolution — 4K, RAW, PNG, and 60fps video — so the host receives full camera archives in one click. No WhatsApp compression. No pixelation.",
+        heading: "3. Preserving Uncompressed 4K Quality",
+        body: "ScanUtsav streams uploads directly to cloud storage via presigned URLs, preserving 100% camera resolution — 4K, RAW, PNG, and HD video — so the host receives full camera archives in one click. No WhatsApp compression. No pixelation.",
       },
       {
         heading: "4. Live Slideshow on Venue TVs",
         body: "With ScanUtsav's built-in Live TV Mode, guest uploads appear on your venue's big screen in real time. Imagine guests seeing their own photos appear on the reception hall screen minutes after uploading — truly magical!",
-      },
-      {
-        heading: "5. AI-Powered Face Recognition Search",
-        body: "After the event, every guest can upload a selfie to instantly find all photos they appear in across the 500+ guest uploads. The AI facial recognition engine matches faces with high confidence so your guests can download just their photos in seconds.",
       },
     ],
     ctaTitle: "Ready to collect uncompressed wedding memories?",
@@ -57,7 +54,7 @@ const BLOG_CONTENT: Record<string, {
     author: "Vikram Sethi",
     date: "July 20, 2026",
     readTime: "7 min read",
-    coverImage: "https://images.unsplash.com/photo-1605379399642-870262d3d051?w=1200",
+    coverImage: "/images/blog-qr-photo.webp",
     excerpt: "Discover print-ready standee poster designs with marigold, modak line-art, and garba mirrorwork borders that delight devotees.",
     sections: [
       {
@@ -85,8 +82,8 @@ const BLOG_CONTENT: Record<string, {
     author: "Rohan Verma",
     date: "July 15, 2026",
     readTime: "4 min read",
-    coverImage: "https://images.unsplash.com/photo-1511578314322-379afb476865?w=1200",
-    excerpt: "Step-by-step guide to projecting real-time guest photo uploads on venue big screens with 15-second auto-polling and Ken Burns pan/zoom.",
+    coverImage: "/images/ganesh-chaturthi.webp",
+    excerpt: "Step-by-step guide to projecting real-time guest photo uploads on venue big screens with auto-polling and Ken Burns pan/zoom.",
     sections: [
       {
         heading: "Step 1: Open the Live TV URL on Your Venue Screen",
@@ -98,7 +95,7 @@ const BLOG_CONTENT: Record<string, {
       },
       {
         heading: "Step 3: Recommended Display Settings",
-        body: "Set the browser to fullscreen (F11), disable screensaver, and enable 'Keep display on' in your OS power settings. For best results, use a HDMI connection at 1920×1080 or 3840×2160 (4K) resolution.",
+        body: "Set the browser to fullscreen (F11), disable screensaver, and enable 'Keep display on' in your OS power settings. For best results, use a HDMI connection at 1920×1080 resolution.",
       },
       {
         heading: "Step 4: Moderate Uploads from Your Phone",
@@ -171,11 +168,14 @@ export default function BlogArticleDetailPage() {
         </div>
 
         {/* Hero Banner Image */}
-        <div className="rounded-3xl overflow-hidden border border-slate-200 shadow-xl">
-          <img
+        <div className="rounded-3xl overflow-hidden border border-slate-200 shadow-xl relative h-72 sm:h-96 w-full">
+          <Image
             src={article.coverImage}
             alt={article.title}
-            className="w-full h-72 sm:h-96 object-cover"
+            fill
+            priority
+            sizes="(max-width: 768px) 100vw, 1024px"
+            className="object-cover"
           />
         </div>
 

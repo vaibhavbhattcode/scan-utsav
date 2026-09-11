@@ -7,8 +7,20 @@ interface RateLimitStore {
 
 const rateLimitMap = new Map<string, RateLimitStore>();
 
+// Evict expired rate limit keys every 5 minutes to prevent memory leaks
+if (typeof setInterval !== "undefined") {
+  setInterval(() => {
+    const now = Date.now();
+    rateLimitMap.forEach((store, key) => {
+      if (now > store.resetTime) {
+        rateLimitMap.delete(key);
+      }
+    });
+  }, 5 * 60 * 1000);
+}
+
 /**
- * IP-based Rate Limiter (sliding window reset)
+ * IP-based Rate Limiter (sliding window reset with auto-eviction)
  * @param ip Client IP Address
  * @param key Route Identifier
  * @param maxRequests Maximum requests allowed per window

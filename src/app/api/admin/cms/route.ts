@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import CMS from "@/models/CMS";
-import { requireAuth } from "@/lib/apiAuth";
+import { requireAuthFresh } from "@/lib/apiAuth";
 
 const DEFAULT_CMS_DATA = {
   heroTitle: "Scan Once. Relive Forever.",
@@ -23,9 +23,10 @@ const DEFAULT_CMS_DATA = {
     { title: "Bank-Grade Encryption", description: "Private invite-only access, SSL encryption, and watermarked guest protections.", icon: "ShieldCheck", tag: "DPDP Ready" }
   ],
   pricingPlans: [
-    { id: "free-starter", name: "Free Utsav", priceINR: 0, popular: false, maxStorageGB: 1, features: ["Up to 50 Guests", "Basic Gallery Wall", "Standard QR Generator", "7 Days Storage"] },
-    { id: "royal-utsav", name: "Royal Utsav", priceINR: 2499, popular: true, maxStorageGB: 25, features: ["Unlimited Guests", "Live TV Slideshow Mode", "Custom QR Poster Studio", "Full HD ZIP Download", "AI Duplicate Filter", "30 Days Storage"] },
-    { id: "enterprise-grand", name: "Grand Utsav", priceINR: 6999, popular: false, maxStorageGB: 100, features: ["Unlimited Guests & Events", "AI Face Recognition Ready", "Dedicated Cloud Folder", "WhatsApp Invite Integration", "Custom Domain Support", "Lifetime Storage Backup"] }
+    { id: "free-trial", name: "Free Trial", priceINR: 0, popular: false, maxStorageGB: 0, features: ["1 Event", "Up to 1,500 Photos", "Up to 30 Guests", "ScanUtsav Branding"] },
+    { id: "lite-utsav", name: "Celebration Lite", priceINR: 399, popular: false, maxStorageGB: 0, features: ["1 Event", "Up to 3,000 Photos", "30 Days Expiry", "Guest Upload & Gallery"] },
+    { id: "standard-utsav", name: "Celebration Standard ⭐", priceINR: 899, popular: true, maxStorageGB: 0, features: ["1 Event", "Up to 15,000 Photos", "90 Days Expiry", "Live Moderation Desk", "ZIP Archive Download"] },
+    { id: "premium-utsav", name: "Celebration Premium", priceINR: 1499, popular: false, maxStorageGB: 0, features: ["1 Event", "Up to 30,000 Photos", "180 Days Validity", "Custom Branding", "Live TV Slideshow Mode"] }
   ],
   navbarLinks: [
     { label: "Features", href: "/features" },
@@ -142,7 +143,7 @@ export async function GET() {
 
 export async function POST(req: Request) {
   // Enforce Super Admin authorization
-  const auth = requireAuth(req, ["super_admin"]);
+  const auth = await requireAuthFresh(req, ["super_admin"]);
   if (auth.response) return auth.response;
 
   try {

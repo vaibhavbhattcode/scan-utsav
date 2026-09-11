@@ -1,119 +1,221 @@
 import { NextResponse } from "next/server";
-import mongoose from "mongoose";
 import { connectDB } from "@/lib/db";
 import User from "@/models/User";
 import Subscription from "@/models/Subscription";
-import { calculateGSTInvoiceBreakdown, verifyPaymentSignature } from "@/lib/razorpay";
+import {
+  PLAN_CATALOG,
+  PLAN_BY_ID,
+  PLAN_VALIDITY_DAYS,
+  calculateGSTInvoiceBreakdown,
+  createRazorpayOrder,
+  verifyPaymentSignature,
+  fetchRazorpayOrder,
+  resolvePlanFromOrder,
+} from "@/lib/razorpay";
 import { requireAuth } from "@/lib/apiAuth";
+import { checkRateLimit } from "@/lib/security";
+
+export async function GET(req: Request) {
+  const auth = requireAuth(req, ["super_admin", "host"]);
+  if (auth.response) return auth.response;
+
+  try {
+    await connectDB();
+    const user = await User.findById(auth.user!.userId).select("subscriptionPlan email name").lean();
+    const subscriptions = await Subscription.find({ userId: auth.user!.userId })
+      .sort({ createdAt: -1 })
+      .limit(50)
+      .lean();
+
+    return NextResponse.json({
+      success: true,
+      plan: (user as any)?.subscriptionPlan || "starter",
+      invoices: subscriptions.map((s: any) => ({
+        id: s.invoiceNumber || s._id.toString(),
+        date: (s.createdAt || s.startDate)?.toISOString?.()?.slice(0, 10) || "",
+        plan: s.planId,
+        amountPaidINR: s.amountPaidINR,
+        status: s.status,
+        paymentId: s.razorpayPaymentId || "",
+        orderId: s.razorpayOrderId || "",
+        baseAmountINR: s.gstBaseINR,
+        cgstINR: s.gstCgstINR,
+        sgstINR: s.gstSgstINR,
+      })),
+    });
+  } catch (error: any) {
+    return NextResponse.json({ success: false, error: error.message || "Failed to load billing" }, { status: 500 });
+  }
+}
 
 export async function POST(req: Request) {
   const auth = requireAuth(req, ["super_admin", "host"]);
-  const user = auth.user || {
-    userId: "host_user_id_101",
-    email: "host@scanutsav.com",
-    role: "host",
-    name: "ScanUtsav Host User",
-  };
+  if (auth.response) return auth.response;
+
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  const rate = checkRateLimit(ip, "razorpay_pay", 20, 60_000);
+  if (!rate.allowed) {
+    return NextResponse.json({ error: "Too many payment attempts. Please wait." }, { status: 429 });
+  }
 
   try {
     await connectDB();
     const body = await req.json();
-    const { action, planName, amountINR, razorpayOrderId, razorpayPaymentId, razorpaySignature } = body;
+    const { action, planName, razorpayOrderId, razorpayPaymentId, razorpaySignature } = body;
+    const user = auth.user!;
 
-    // Action 1: Create Order
     if (action === "create_order") {
-      const planPrices: Record<string, number> = {
-        "Royal Utsav": 2499,
-        "Grand Utsav": 6999,
-      };
+      const { couponCode } = body;
+      const plan = PLAN_CATALOG[planName];
+      if (!plan) {
+        return NextResponse.json({ error: "Invalid plan selected" }, { status: 400 });
+      }
 
-      const finalAmount = planPrices[planName] || amountINR || 2499;
-      const gstInvoice = calculateGSTInvoiceBreakdown(finalAmount);
+      let finalAmountINR = plan.amountINR;
+      let discountAppliedPercent = 0;
 
-      const mockOrderId = `order_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+      if (couponCode) {
+        const codeUpper = String(couponCode).toUpperCase().trim();
+        if (codeUpper === "UTSAV20") {
+          discountAppliedPercent = 20;
+          finalAmountINR = Math.round(plan.amountINR * 0.8);
+        } else if (codeUpper === "SCAN50") {
+          discountAppliedPercent = 50;
+          finalAmountINR = Math.round(plan.amountINR * 0.5);
+        } else if (codeUpper === "WELCOME10") {
+          discountAppliedPercent = 10;
+          finalAmountINR = Math.round(plan.amountINR * 0.9);
+        }
+      }
+
+      const gstInvoice = calculateGSTInvoiceBreakdown(finalAmountINR);
+      const order = await createRazorpayOrder({
+        amountINR: finalAmountINR,
+        receipt: `sub_${user.userId.slice(-8)}_${Date.now()}`,
+        notes: {
+          userId: user.userId,
+          planName,
+          planId: plan.planId,
+          email: user.email,
+          couponCode: couponCode || "",
+        },
+      });
 
       return NextResponse.json({
         success: true,
-        orderId: mockOrderId,
-        amountINR: finalAmount,
+        orderId: order.id,
+        amountINR: finalAmountINR,
+        originalAmountINR: plan.amountINR,
+        discountAppliedPercent,
         currency: "INR",
         planName,
+        planId: plan.planId,
         gstInvoice,
-        key: process.env.RAZORPAY_KEY_ID || "rzp_test_scanutsav_2026",
+        key: process.env.RAZORPAY_KEY_ID,
+        prefill: { name: user.name, email: user.email },
       });
     }
 
-    // Action 2: Verify Payment & Issue GST Receipt
     if (action === "verify_payment") {
       const keySecret = process.env.RAZORPAY_KEY_SECRET;
-      const isProduction = process.env.NODE_ENV === "production";
-
-      let isValid = false;
-      if (razorpaySignature === "mock_signature_valid" || !keySecret || keySecret.includes("your_") || keySecret.includes("test")) {
-        isValid = true;
-      } else {
-        isValid = verifyPaymentSignature(razorpayOrderId, razorpayPaymentId, razorpaySignature, keySecret);
+      if (!keySecret) {
+        return NextResponse.json({ error: "Payment verification is not configured" }, { status: 500 });
       }
 
+      if (!razorpayOrderId || !razorpayPaymentId || !razorpaySignature) {
+        return NextResponse.json({ error: "Missing payment verification fields" }, { status: 400 });
+      }
+
+      const isValid = verifyPaymentSignature(
+        razorpayOrderId,
+        razorpayPaymentId,
+        razorpaySignature,
+        keySecret
+      );
       if (!isValid) {
         return NextResponse.json({ error: "Invalid payment signature" }, { status: 400 });
       }
 
-      const planPrices: Record<string, number> = {
-        "Royal Utsav": 2499,
-        "Grand Utsav": 6999,
-      };
-      const finalAmount = planPrices[planName] || 2499;
-      const gstInvoice = calculateGSTInvoiceBreakdown(finalAmount);
-
-      // Map planName to User model subscriptionPlan
-      const planMap: Record<string, "royal" | "enterprise" | "starter"> = {
-        "Royal Utsav": "royal",
-        "Grand Utsav": "enterprise",
-      };
-      const newPlan = planMap[planName] || "royal";
-
-      // Update user plan in DB safely if userId is a valid Mongo ObjectId
-      if (mongoose.Types.ObjectId.isValid(user.userId)) {
-        try {
-          await User.findByIdAndUpdate(user.userId, { subscriptionPlan: newPlan });
-
-          const oneYearFromNow = new Date();
-          oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);
-
-          await Subscription.create({
-            userId: user.userId,
-            planId: newPlan,
-            status: "active",
-            amountPaidINR: finalAmount,
-            startDate: new Date(),
-            endDate: oneYearFromNow,
-          });
-        } catch (dbErr: any) {
-          console.warn("Mongoose DB update warning:", dbErr.message);
-        }
+      // Server-side validation against Razorpay Order API to prevent client planName forgery
+      const razorpayOrder = await fetchRazorpayOrder(razorpayOrderId).catch(() => null);
+      if (!razorpayOrder) {
+        return NextResponse.json({ error: "Razorpay order not found" }, { status: 404 });
       }
 
-      const invoiceReceipt = {
-        invoiceNumber: `INV-2026-${Math.floor(100000 + Math.random() * 900000)}`,
-        date: new Date().toISOString(),
-        customerEmail: user.email,
-        planName,
-        paymentId: razorpayPaymentId || `pay_${Date.now()}`,
-        gstInvoice,
-        vendor: "ScanUtsav EventTech Solutions Private Limited (GSTIN: 27AAAAA0000A1Z5)",
-      };
+      const resolvedPlan = resolvePlanFromOrder(razorpayOrder);
+      if (!resolvedPlan) {
+        return NextResponse.json({ error: "Payment amount or plan mismatch" }, { status: 400 });
+      }
+
+      if (resolvedPlan.userId && resolvedPlan.userId !== user.userId) {
+        return NextResponse.json({ error: "Order does not belong to authenticated user" }, { status: 403 });
+      }
+
+      const plan = PLAN_CATALOG[resolvedPlan.planName] || PLAN_BY_ID[resolvedPlan.planId];
+      if (!plan) {
+        return NextResponse.json({ error: "Invalid plan catalog record" }, { status: 400 });
+      }
+
+      // Prevent duplicate processing of same payment
+      const existing = await Subscription.findOne({ razorpayPaymentId });
+      if (existing) {
+        return NextResponse.json({
+          success: true,
+          message: "Payment already processed",
+          plan: existing.planId,
+          invoice: {
+            invoiceNumber: existing.invoiceNumber,
+            paymentId: existing.razorpayPaymentId,
+          },
+        });
+      }
+
+      const gstInvoice = calculateGSTInvoiceBreakdown(plan.amountINR);
+      const invoiceNumber = `INV-${new Date().getFullYear()}-${Math.floor(100000 + Math.random() * 900000)}`;
+      const validityDays = PLAN_VALIDITY_DAYS[plan.planId] || 30;
+      const endDate = new Date(Date.now() + validityDays * 24 * 60 * 60 * 1000);
+
+      await User.findByIdAndUpdate(user.userId, { subscriptionPlan: plan.planId });
+
+      await Subscription.updateMany(
+        { userId: user.userId, status: "active" },
+        { $set: { status: "canceled" } }
+      );
+
+      const sub = await Subscription.create({
+        userId: user.userId,
+        planId: plan.planId,
+        status: "active",
+        amountPaidINR: plan.amountINR,
+        maxStorageGB: plan.maxStorageGB,
+        startDate: new Date(),
+        endDate,
+        razorpayOrderId,
+        razorpayPaymentId,
+        invoiceNumber,
+        gstBaseINR: gstInvoice.baseAmountINR,
+        gstCgstINR: gstInvoice.cgstINR,
+        gstSgstINR: gstInvoice.sgstINR,
+      });
 
       return NextResponse.json({
         success: true,
         message: "Payment verified successfully",
-        invoice: invoiceReceipt,
-        plan: newPlan,
+        plan: plan.planId,
+        invoice: {
+          invoiceNumber,
+          date: new Date().toISOString(),
+          customerEmail: user.email,
+          planName,
+          paymentId: razorpayPaymentId,
+          gstInvoice,
+          vendor: "ScanUtsav EventTech Solutions Private Limited",
+        },
+        subscriptionId: sub._id.toString(),
       });
     }
 
     return NextResponse.json({ error: "Invalid action" }, { status: 400 });
-
   } catch (error: any) {
     console.error("Razorpay Payment API Error:", error);
     return NextResponse.json({ error: error.message || "Payment processing failed" }, { status: 500 });

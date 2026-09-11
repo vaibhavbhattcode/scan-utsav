@@ -49,7 +49,7 @@ export default function TermsPage() {
     {
       title: "7. Payment & Billing",
       content: [
-        "Paid plans (Royal Utsav ₹2,499, Grand Enterprise ₹6,999) are billed at the time of purchase.",
+        "Paid celebration plans (Celebration Lite ₹399, Standard ₹899, Premium ₹1,499, Ultimate ₹2,499, Creator Agency ₹999/mo, Studio Agency ₹2,499/mo) are billed at the time of purchase.",
         "All payments are processed via Razorpay in Indian Rupees (INR).",
         "Prices are inclusive of GST at 18% where applicable.",
         "Refunds are subject to our Refund & Cancellation Policy (7-day money-back guarantee).",

@@ -1,49 +1,57 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { 
-  BarChart3, ArrowLeft, TrendingUp, Users, DollarSign, Activity, 
-  ShieldCheck, Globe, Smartphone, QrCode, ArrowUpRight, Zap, HardDrive, Download
+  ArrowLeft, TrendingUp, Users, Activity, 
+  Globe, QrCode, Zap, HardDrive, Download, RefreshCw
 } from "lucide-react";
+import { apiFetch } from "@/lib/client-api";
 
 export default function AdminAnalyticsDashboard() {
-  const [metrics] = useState({
-    dau: "14,250",
-    mau: "185,000",
-    qrScanCount: "420,500",
-    qrConversionRate: "68.4%",
-    monthlyRevenueINR: "₹4,850,000",
-    apiLatencyMs: 42,
-    errorRate: "0.02%",
-    storageUsedGB: 412,
-    storageCapacityGB: 1000,
-    fileCount: "128,450",
-    avgFileSizeMB: "3.2 MB",
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({
+    totalEvents: 0,
+    totalMemories: 0,
+    moderationQueue: 0,
+    usedMB: 0,
+    uniqueScans: 0,
+    userPlan: "super_admin",
   });
 
-  const [marketingUTM] = useState([
-    { source: "instagram_ad", campaign: "navratri_garba_2026", scans: "42,100", conversions: "28,400" },
-    { source: "whatsapp_invite", campaign: "wedding_viral_loop", scans: "128,500", conversions: "94,200" },
-    { source: "google_search", campaign: "qr_wedding_album", scans: "18,400", conversions: "12,100" },
-    { source: "venue_partner", campaign: "hotel_qr_standee", scans: "64,200", conversions: "48,900" },
-  ]);
+  const fetchRealStats = async () => {
+    setLoading(true);
+    try {
+      const res = await apiFetch("/api/dashboard/stats");
+      const data = await res.json();
+      if (data.success && data.stats) {
+        setStats(data.stats);
+      }
+    } catch (err) {
+      console.error("Failed to load admin stats:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchRealStats();
+  }, []);
 
   const exportAnalyticsCSV = () => {
-    const headers = ["UTM Source", "Campaign Name", "QR Scans", "Memory Uploads", "Conversion Rate %"];
-    const rows = marketingUTM.map(u => [
-      u.source,
-      `"${u.campaign}"`,
-      u.scans.replace(",", ""),
-      u.conversions.replace(",", ""),
-      ((parseInt(u.conversions.replace(",", "")) / parseInt(u.scans.replace(",", ""))) * 100).toFixed(1) + "%"
-    ]);
+    const headers = ["Metric", "Live System Value"];
+    const rows = [
+      ["Total Active Events", stats.totalEvents],
+      ["Total Uploaded Media", stats.totalMemories],
+      ["Pending Moderation Queue", stats.moderationQueue],
+      ["Total Cloud Storage Used (MB)", stats.usedMB],
+    ];
 
     const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `ScanUtsav_Analytics_${new Date().toISOString().slice(0, 10)}.csv`);
+    link.setAttribute("download", `ScanUtsav_RealAnalytics_${new Date().toISOString().slice(0, 10)}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -60,7 +68,7 @@ export default function AdminAnalyticsDashboard() {
             </Link>
             <div>
               <span className="text-xs uppercase font-black tracking-widest text-amber-900 bg-amber-100 px-3 py-1 rounded-full border border-amber-300">
-                Observability & Marketing
+                Observability & Real Analytics
               </span>
               <h1 className="text-3xl font-black text-slate-900 tracking-tight font-display mt-1">
                 Business & Storage Analytics Desk
@@ -70,15 +78,20 @@ export default function AdminAnalyticsDashboard() {
 
           <div className="flex items-center gap-3">
             <button
+              onClick={fetchRealStats}
+              disabled={loading}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-black rounded-xl border border-slate-300 transition-all"
+            >
+              <RefreshCw className={`w-4 h-4 text-slate-600 ${loading ? "animate-spin" : ""}`} />
+              <span>Refresh Stats</span>
+            </button>
+            <button
               onClick={exportAnalyticsCSV}
               className="inline-flex items-center gap-2 px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-black rounded-xl shadow-sm transition-all"
             >
               <Download className="w-4 h-4 text-amber-400" />
-              <span>Export Analytics CSV</span>
+              <span>Export CSV</span>
             </button>
-            <div className="hidden sm:flex items-center gap-2 text-xs font-bold text-emerald-800 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-200">
-              <Zap className="w-4 h-4 text-emerald-600" /> DPDP Compliant
-            </div>
           </div>
         </div>
 
@@ -87,28 +100,28 @@ export default function AdminAnalyticsDashboard() {
           <div className="flex items-center justify-between">
             <h3 className="font-black text-slate-900 text-base font-display flex items-center gap-2">
               <HardDrive className="w-5 h-5 text-purple-600" />
-              <span>Cloud Storage & Bandwidth Meter</span>
+              <span>Cloud Storage Meter</span>
             </h3>
             <span className="text-xs text-slate-500 font-bold">
-              {metrics.storageUsedGB} GB of {metrics.storageCapacityGB} GB (41.2% Used)
+              {stats.usedMB} MB Storage Consumed Across Platform
             </span>
           </div>
 
-          <div className="w-full bg-slate-100 h-3 rounded-full overflow-hidden border border-slate-200">
-            <div className="bg-gradient-to-r from-purple-600 to-[#F2810C] h-full w-[41.2%]" />
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 pt-2 text-xs">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-2 text-xs">
             <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
-              <span className="text-slate-500 block text-[10px] font-bold uppercase">Total Files Stored</span>
-              <span className="font-black text-slate-900 text-base">{metrics.fileCount}</span>
+              <span className="text-slate-500 block text-[10px] font-bold uppercase">Total Events Created</span>
+              <span className="font-black text-slate-900 text-base">{stats.totalEvents}</span>
             </div>
             <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
-              <span className="text-slate-500 block text-[10px] font-bold uppercase">Average File Size</span>
-              <span className="font-black text-slate-900 text-base">{metrics.avgFileSizeMB}</span>
+              <span className="text-slate-500 block text-[10px] font-bold uppercase">Uploaded Media Items</span>
+              <span className="font-black text-slate-900 text-base">{stats.totalMemories}</span>
             </div>
             <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
-              <span className="text-slate-500 block text-[10px] font-bold uppercase">Cloud Infrastructure</span>
+              <span className="text-slate-500 block text-[10px] font-bold uppercase">Moderation Queue</span>
+              <span className="font-black text-amber-600 text-base">{stats.moderationQueue}</span>
+            </div>
+            <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
+              <span className="text-slate-500 block text-[10px] font-bold uppercase">CDN Delivery</span>
               <span className="font-black text-emerald-700 text-xs">Cloudinary HD Active</span>
             </div>
           </div>
@@ -118,75 +131,38 @@ export default function AdminAnalyticsDashboard() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-2">
             <div className="flex items-center justify-between text-slate-500 text-xs font-bold">
-              <span>Daily Active Users (DAU)</span>
+              <span>Platform Events</span>
               <Users className="w-4 h-4 text-[#F2810C]" />
             </div>
-            <div className="text-3xl font-black text-slate-900 font-display">{metrics.dau}</div>
-            <span className="inline-block text-[11px] text-emerald-700 font-black bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">+18.5% growth today</span>
+            <div className="text-3xl font-black text-slate-900 font-display">{stats.totalEvents}</div>
+            <span className="inline-block text-[11px] text-emerald-700 font-black bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">Live Database Count</span>
           </div>
 
           <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-2">
             <div className="flex items-center justify-between text-slate-500 text-xs font-bold">
-              <span>Monthly Active Users (MAU)</span>
+              <span>Total Guest Uploads</span>
               <TrendingUp className="w-4 h-4 text-amber-600" />
             </div>
-            <div className="text-3xl font-black text-slate-900 font-display">{metrics.mau}</div>
-            <span className="inline-block text-[11px] text-slate-600 font-bold bg-slate-100 px-2 py-0.5 rounded border border-slate-200">Across 30+ Presets</span>
+            <div className="text-3xl font-black text-slate-900 font-display">{stats.totalMemories}</div>
+            <span className="inline-block text-[11px] text-slate-600 font-bold bg-slate-100 px-2 py-0.5 rounded border border-slate-200">Photos & Videos</span>
           </div>
 
           <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-2">
             <div className="flex items-center justify-between text-slate-500 text-xs font-bold">
-              <span>QR Scan-to-Upload Funnel</span>
+              <span>Pending Moderation</span>
               <QrCode className="w-4 h-4 text-blue-600" />
             </div>
-            <div className="text-3xl font-black text-slate-900 font-display">{metrics.qrConversionRate}</div>
-            <span className="inline-block text-[11px] text-emerald-700 font-black bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">{metrics.qrScanCount} total scans</span>
+            <div className="text-3xl font-black text-slate-900 font-display">{stats.moderationQueue}</div>
+            <span className="inline-block text-[11px] text-amber-700 font-black bg-amber-50 px-2 py-0.5 rounded border border-amber-200">Awaiting Host Review</span>
           </div>
 
           <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-2">
             <div className="flex items-center justify-between text-slate-500 text-xs font-bold">
-              <span>API Latency (p99) & Errors</span>
+              <span>Cloud Storage Used</span>
               <Activity className="w-4 h-4 text-emerald-600" />
             </div>
-            <div className="text-3xl font-black text-slate-900 font-display">{metrics.apiLatencyMs} ms</div>
-            <span className="inline-block text-[11px] text-emerald-700 font-black bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">{metrics.errorRate} Error Rate</span>
-          </div>
-        </div>
-
-        {/* Marketing Attribution & UTM Campaign Analytics */}
-        <div className="bg-white p-6 rounded-3xl space-y-4 border border-slate-200 shadow-sm">
-          <h3 className="font-black text-slate-900 text-lg font-display flex items-center gap-2">
-            <Globe className="w-5 h-5 text-[#F2810C]" />
-            <span>Marketing Campaign & UTM Attribution</span>
-          </h3>
-
-          <div className="rounded-2xl overflow-hidden border border-slate-200">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs text-slate-700 min-w-[650px]">
-                <thead className="bg-slate-50 text-slate-900 font-black uppercase text-[10px] tracking-wider border-b border-slate-200">
-                  <tr>
-                    <th className="p-4">UTM Source</th>
-                    <th className="p-4">Campaign Name</th>
-                    <th className="p-4">QR Scans</th>
-                    <th className="p-4">Memory Uploads</th>
-                    <th className="p-4 text-right">Conversion %</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 font-mono">
-                  {marketingUTM.map((utm, idx) => (
-                    <tr key={idx} className="hover:bg-slate-50 transition-colors">
-                      <td className="p-4 font-sans font-bold text-[#F2810C]">{utm.source}</td>
-                      <td className="p-4 text-slate-900 font-sans font-medium">{utm.campaign}</td>
-                      <td className="p-4 text-slate-700">{utm.scans}</td>
-                      <td className="p-4 text-slate-700">{utm.conversions}</td>
-                      <td className="p-4 text-right text-emerald-700 font-bold">
-                        {((parseInt(utm.conversions.replace(",", "")) / parseInt(utm.scans.replace(",", ""))) * 100).toFixed(1)}%
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <div className="text-3xl font-black text-slate-900 font-display">{stats.usedMB} MB</div>
+            <span className="inline-block text-[11px] text-emerald-700 font-black bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">Calculated Bytes</span>
           </div>
         </div>
       </div>
